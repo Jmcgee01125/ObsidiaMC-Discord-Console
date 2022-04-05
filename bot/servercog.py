@@ -6,14 +6,15 @@ Cogs
 ServerCog
 '''
 
-import asyncio
-import threading
+
 from server.server_manager import ServerManager
-from bot.helpers.commandhelp import CommandHelp
 from bot.helpers.embedhelper import EmbedField
 from nextcord import Interaction, SlashOption
 from nextcord.ext import commands
+import threading
 import nextcord
+import requests
+import asyncio
 
 
 class ServerCog (commands.Cog):
@@ -51,13 +52,14 @@ class ServerCog (commands.Cog):
         Report command help list
     '''
 
-    def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str):
+    def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str, ip: str = None):
         self.client: nextcord.Client = client
         self.manager: ServerManager = manager
         self.operators_file: str = operators_file
         self.owners_file: str = owners_file
         self.ops: set[int] = set()
         self.owners: set[int] = set()
+        self.ip: str = ip
         self._load_admins()
 
     @nextcord.slash_command(name="server", description="Server management commands")
@@ -79,9 +81,9 @@ class ServerCog (commands.Cog):
         if await self._verify_operator_and_reply(interaction) or await self._verify_server_online_and_reply(interaction):
             return
         else:
-            result = self.manager.write(content)
-            if result != None:
-                await interaction.send(result)
+            special_result = self.manager.write(content)
+            if special_result != None:
+                await interaction.send(special_result, ephemeral=True)
             else:
                 await interaction.send(f"Command sent.")
 
@@ -90,9 +92,9 @@ class ServerCog (commands.Cog):
         if await self._verify_operator_and_reply(interaction) or await self._verify_server_online_and_reply(interaction):
             return
         else:
-            result = self.manager.stop_server()
-            if result != None:
-                await interaction.send(result)
+            special_result = self.manager.stop_server()
+            if special_result != None:
+                await interaction.send(special_result, ephemeral=True)
             else:
                 await interaction.send("Server shut down.")
 
@@ -117,16 +119,29 @@ class ServerCog (commands.Cog):
 
     @_server.subcommand(name="log", description="Read the server log")
     async def _sv_log(self, interaction: Interaction):
-        pass  # TODO - operator, give arrow to page through entries, manager.get_latest_log()
+        # TODO - operator, give arrows to page through entries, manager.get_latest_log()
+        pass
 
-    @_server.subcommand(name="backup", description="Make a backup for the server")
+    @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
-                         name: str = SlashOption(required=True, name="name", description="Name of the backup")):
-        pass  # TODO -  operator, account for getting a result from backup_world (i.e. name match with other backup)
+                         name: str = SlashOption(required=False, name="name", description="Name of the backup")):
+        if await self._verify_operator_and_reply(interaction):
+            return
+        else:
+            await interaction.response.defer(ephemeral=True)
+            if name != None:
+                name = name.strip()
+            special_result = await self.manager.backup_world(name)
+            if special_result != None:
+                await interaction.send(special_result)
+            else:
+                await interaction.send("Server backed up.")
+                await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")
 
     @_server.subcommand(name="listbackups", description="Get a list of available backups")
     async def _sv_listbackups(self, interaction: Interaction):
-        pass  # TODO - operator, account for pages
+        # TODO - operator, account for pages, translate epochs (but keep epoch as title, translate in field text not title)
+        pass
 
     @nextcord.slash_command(name="admin", description="Server owner commands")
     async def _admin(self, interaction: Interaction):
@@ -135,12 +150,33 @@ class ServerCog (commands.Cog):
     @_admin.subcommand(name="restore", description="Restore the world from a given backup")
     async def _ad_restore(self, interaction: Interaction,
                           name: str = SlashOption(required=True, name="name", description="Name of the backup")):
-        pass  # TODO - owner, make sure server is offline and backup exists
+        if await self._verify_owner_and_reply(interaction):
+            return
+        else:
+            await interaction.response.defer(ephemeral=True)
+            try:
+                self.manager.restore_backup(name.strip())
+            except RuntimeError:
+                await interaction.send("Cannot restore while server is running.")
+            except FileNotFoundError:
+                await interaction.send("Specified backup does not exist.")
+            else:
+                await interaction.send("Backup restored.")
+                await interaction.channel.send(f"Backup restored by {interaction.user.mention}.")
 
     @_admin.subcommand(name="deletebackup", description="Delete a given backup")
     async def _ad_deletebackup(self, interaction: Interaction,
                                name: str = SlashOption(required=True, name="name", description="Name of the backup")):
-        pass  # TODO - owner, check that the backup exists
+        if await self._verify_owner_and_reply(interaction):
+            return
+        else:
+            await interaction.response.defer(ephemeral=True)
+            try:
+                self.manager.delete_backup(name.strip())
+            except FileNotFoundError:
+                await interaction.send("Specified backup does not exist.")
+            else:
+                await interaction.send("Backup deleted.")
 
     @_admin.subcommand(name="op", description="Give a user operator status")
     async def _ad_op(self, interaction: Interaction,
@@ -172,7 +208,9 @@ class ServerCog (commands.Cog):
 
     @nextcord.slash_command(name="query", description="Query the server's state")
     async def _query(self, interaction: Interaction):
-        pass  # TODO - general use
+        # TODO - general use, make a request to mcapi and parse it. If it fails, just say if server is started, stopped, or changing state
+        # TODO: if ip is None, then use_mcapi is false and we should instead just give the started/stopped/changing status
+        pass
 
     async def _verify_operator_and_reply(self, interaction: Interaction):
         '''Return true if the user is NOT allowed to run operator commands, replying to the interaction if so.'''
@@ -221,10 +259,3 @@ class ServerCog (commands.Cog):
             owners_text += f"{owner}\n"
         with open(self.owners_file, "w") as owners_writer:
             owners_writer.write(owners_text)
-
-    def report_help(self) -> list[CommandHelp]:
-        '''Set up command help'''
-        server_general = EmbedField("server", "Interact with the Minecraft server.", True)
-        server_specific = [EmbedField("server command command:<command>", "Send any console command to the server.")]
-        server = CommandHelp("server", server_general, server_specific)
-        return [server]

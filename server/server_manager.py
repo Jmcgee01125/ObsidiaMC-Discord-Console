@@ -216,9 +216,9 @@ class ServerManager:
 
     def restore_backup(self, backup: str):
         '''
-        Restores a backup from a specified timestamp.
+        Restores a backup with the specified name.
 
-        Fails if the server is currently running, or if the specified backup does not exist.
+        Fails if the server is currently running, or if the specified backup does not exist (RuntimeError/FileNotFoundError).
         (Note that only the existance of the directory pointed to is checked. It may be empty.)
         '''
         if self.server_should_be_running():
@@ -229,6 +229,19 @@ class ServerManager:
             backup_dir = os.path.join(self._backup_directory, backup)
             self._delete_world(world_dir)
             self._copy_world(backup_dir, world_dir)
+        else:
+            raise FileNotFoundError("Specified backup does not exist.")
+
+    def delete_backup(self, backup: str):
+        '''
+        Deletes a backup with the specified name.
+
+        Raises FileNotFoundError if the folder does not exist.
+        '''
+        backup_list = self.list_backups()
+        if backup in backup_list:
+            backup_dir = os.path.join(self._backup_directory, backup)
+            self._delete_world(backup_dir)
         else:
             raise FileNotFoundError("Specified backup does not exist.")
 
