@@ -14,6 +14,7 @@ from bot.helpers.embedhelper import EmbedField
 import bot.helpers.embedhelper as embedhelper
 from server.server_ping import StatusPing
 from nextcord.ext import commands
+from bot.helpers import symbols
 from datetime import datetime
 import threading
 import nextcord
@@ -129,8 +130,37 @@ class ServerCog (commands.Cog):
 
     @_server.subcommand(name="log", description="Read the server log")
     async def _sv_log(self, interaction: Interaction):
-        # TODO - operator, give arrows to page through entries, manager.get_latest_log()
-        pass
+        if await self._verify_operator_and_reply(interaction):
+            return
+        else:
+            embed_title = "Server Log"
+            log_entries = self.manager.get_latest_log()
+            if len(log_entries) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
+
+                def build_log_embed_with_offset() -> Embed:
+                    content = ""
+                    for i in range(max(0, index), min(index + 10, len(log_entries))):
+                        content += f"{log_entries[i]}\n"
+                    return embedhelper.build_embed(title=embed_title, description=content, color=self._embed_color)
+
+                index = len(log_entries) - 10
+                button_timeout = 60
+                page_buttons = PageButtons(timeout=button_timeout)
+                await interaction.send(embed=build_log_embed_with_offset(), view=page_buttons, ephemeral=True)
+
+                while not page_buttons.is_finished():
+                    await page_buttons.wait()
+                    if page_buttons.value == ButtonEnums.LEFT:
+                        if index > 0:
+                            index -= 10
+                        page_buttons = PageButtons(timeout=button_timeout)
+                        await interaction.edit_original_message(embed=build_log_embed_with_offset(), view=page_buttons)
+                    elif page_buttons.value == ButtonEnums.RIGHT:
+                        if index < len(log_entries) - 10:
+                            index += 10
+                        page_buttons = PageButtons(timeout=button_timeout)
+                        await interaction.edit_original_message(embed=build_log_embed_with_offset(), view=page_buttons)
+                await interaction.edit_original_message(view=None)
 
     @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
