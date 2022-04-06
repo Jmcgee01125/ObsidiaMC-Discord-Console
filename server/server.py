@@ -1,4 +1,6 @@
 import subprocess
+import threading
+import asyncio
 import queue
 import os
 
@@ -48,7 +50,10 @@ class ServerRunner:
         if (self._server == None or not self.is_active()):
             self._server = subprocess.Popen(["java"] + self._args + ["-jar"] + [self._jarname] + ["-nogui"],
                                             stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, cwd=self.server_directory)
-            await self._listen_for_logs()
+            threading.Thread(target=self._start_async_log_listener, name="ServerLogListener", daemon=True).start()
+
+    def _start_async_log_listener(self):
+        asyncio.run(self._listen_for_logs())
 
     async def _listen_for_logs(self):
         '''
@@ -58,7 +63,7 @@ class ServerRunner:
         '''
         while (self.is_active()):
             try:
-                line = self._server.stdout.readline().decode().strip()
+                line = self._server.stdout.readline().decode().strip()  # blocks until data exists
             except ValueError:  # info->buf could be NUL
                 pass
             else:
