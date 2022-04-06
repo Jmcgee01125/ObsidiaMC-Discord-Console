@@ -54,6 +54,18 @@ Automatic, user-defined restarts and backups.
 
     1) Add "DISCORD_TOKEN=<your bot's Discord token>" to the file, e.g. DISCORD_TOKEN=abcdefg
 
+    2) Yes, you will need to make your own Discord bot account:
+
+        1) Go to discord.com/developers and create a new application.
+
+        2) Go to the bot tab and make it a bot, then get the token.
+
+        3) Go to OAuth2 -> URL Generator and invite your bot with the following:
+
+            1) "bot" and "applications.commands" scopes.
+
+            2) "Send Messages" and "Use Slash Commands" bot permissions.
+
 4) Start the program by running \_\_main__.py.
   
     1) Quit by using Ctrl+C in the terminal that the program runs in.
