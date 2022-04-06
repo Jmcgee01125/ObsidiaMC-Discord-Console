@@ -272,6 +272,7 @@ class ServerManager:
             config = MCPropertiesParser(os.path.join(self.server_directory, "server.properties"))
             self._level_name = config.get("level-name").strip()
             self._motd = config.get("motd").strip()
+            self._port = int(config.get("query.port"))
         except FileNotFoundError:
             raise FileNotFoundError("You must run your servers before using the server manager.")
 

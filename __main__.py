@@ -32,13 +32,12 @@ if __name__ == "__main__":
     configs = ObsidiaConfigParser(config_file)
     server_dir = configs.get("Server", "directory")
     ip = configs.get("Server", "ip")
-    use_mcapi = configs.get("Server", "use_mcapi").lower() == "true"
 
     manager = ServerManager(server_dir, config_file)
     listener = ConsolePrintListener(manager)
     listener.start()
 
-    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip, use_mcapi)
+    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip)
     discord_server.start_client()
 
     listener.stop()

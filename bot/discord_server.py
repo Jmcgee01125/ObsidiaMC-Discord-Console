@@ -9,20 +9,22 @@ import os
 load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 INTENTS = nextcord.Intents.none()
+if DISCORD_TOKEN == None:
+    raise RuntimeError("Could not find DISCORD_TOKEN in .env file")
 
 
-def prep_client(manager: ServerManager, operators_file: str, owners_file: str, ip: str = None, use_mcapi: bool = True):
+def prep_client(manager: ServerManager, operators_file: str, owners_file: str, ip: str = None):
     '''Prepare the client with applicable commands'''
     if ip == None or ip == "":
         ip = "Minecraft"
+        server_name = "Minecraft Server"
+    else:
+        server_name = f"{ip}:{manager._port}"
 
     global client
     client = nextcord.Client(intents=INTENTS)
     client.add_cog(PingCog(client))
-    if use_mcapi:
-        client.add_cog(ServerCog(client, manager, operators_file, owners_file, ip))
-    else:
-        client.add_cog(ServerCog(client, manager, operators_file, owners_file))
+    client.add_cog(ServerCog(client, manager, operators_file, owners_file, server_name))
 
     @client.event
     async def on_ready():

@@ -64,18 +64,8 @@ Directories from root/C/whatever are recommended, but not required (relative to 
 
 
 ip
-The ip to connect to.
-This is used for two things:
-1) The information displayed in the Discord activity ("Playing 192.168.1.1").
-2) Querying the server using a request to mcapi.
-If the ip is a bad address the following will happen:
-1) The Discord activity will still say "Playing <ip>" (with whatever you set as this ip variable, "Playing Minecraft" if left blank).
-2) Queries will be replaced with just a simple server online/offline status (note that requests to mcapi are still attempted).
-
-
-use_mcapi
-Set to true to use mcapi when querying the server.
-If false, will always use the simple server online/offline status for queries, but no mcapi requests will be made.
+The ip that users will connect to.
+This is only used in the information displayed in the Discord activity ("Playing 192.168.1.1") and queries ("192.168.1.1:25565").
 
 
 ----- [operators.txt] -----
