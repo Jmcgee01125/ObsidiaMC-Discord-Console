@@ -7,15 +7,18 @@ ServerCog
 '''
 
 
+from bot.buttonviews import ButtonEnums, ConfirmButtons, PageButtons
+from nextcord import Interaction, SlashOption, Embed
 from server.server_manager import ServerManager
 from bot.helpers.embedhelper import EmbedField
 import bot.helpers.embedhelper as embedhelper
-from nextcord import Interaction, SlashOption
 from server.server_ping import StatusPing
 from nextcord.ext import commands
+from datetime import datetime
 import threading
 import nextcord
 import asyncio
+import os
 
 
 class ServerCog (commands.Cog):
@@ -66,6 +69,7 @@ class ServerCog (commands.Cog):
         self._owners: set[int] = set()
         self._server_name = server_name
         self.pinger: StatusPing = StatusPing(port=manager._port, timeout=2)
+        self._embed_color = nextcord.Color.green()
         self._load_admins()
 
     @nextcord.slash_command(name="server", description="Server management commands")
@@ -146,8 +150,55 @@ class ServerCog (commands.Cog):
 
     @_server.subcommand(name="listbackups", description="Get a list of available backups")
     async def _sv_listbackups(self, interaction: Interaction):
-        # TODO - operator, account for pages, translate epochs (but keep epoch as title, translate in field text not title)
-        pass
+        if await self._verify_operator_and_reply(interaction):
+            return
+        else:
+            embed_title = "Available Backups"
+            backups = self.manager.list_backups()
+            if len(backups) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
+
+                def build_backup_embed_with_offset() -> Embed:
+                    fields = []
+                    for i in range(index, min(index + 10, len(backups))):
+                        fields.append(self._build_backup_field(backups[i]))
+                    return embedhelper.build_embed(*fields, title=embed_title, color=self._embed_color)
+
+                index = 0
+                button_timeout = 30
+                page_buttons = PageButtons(timeout=button_timeout)
+                await interaction.send(embed=build_backup_embed_with_offset(), view=page_buttons, ephemeral=True)
+
+                while not page_buttons.is_finished():
+                    await page_buttons.wait()
+                    if page_buttons.value == ButtonEnums.LEFT:
+                        if index > 0:
+                            index -= 10
+                        page_buttons = PageButtons(timeout=button_timeout)
+                        await interaction.edit_original_message(embed=build_backup_embed_with_offset(), view=page_buttons)
+                    elif page_buttons.value == ButtonEnums.RIGHT:
+                        if index < len(backups) - 10:
+                            index += 10
+                        page_buttons = PageButtons(timeout=button_timeout)
+                        await interaction.edit_original_message(embed=build_backup_embed_with_offset(), view=page_buttons)
+                await interaction.edit_original_message(view=None)
+
+            else:  # less than 10, no need for buttons
+                fields = []
+                for backup in backups:
+                    fields.append(self._build_backup_field(backup))
+                emb = embedhelper.build_embed(*fields, title=embed_title, color=self._embed_color)
+                await interaction.send(embed=emb, ephemeral=True)
+
+    def _build_backup_field(self, backup: str) -> EmbedField:
+        try:  # try to translate epochs, otherwise read the file creation date
+            backup_timestamp = datetime.fromtimestamp(int(backup)).strftime("%D %H:%M:%S")
+        except ValueError:
+            try:
+                st = os.stat(os.path.join(self.manager.backup_directory, backup)).st_ctime
+                backup_timestamp = datetime.fromtimestamp(int(st)).strftime("%D %H:%M:%S")
+            except FileNotFoundError:
+                backup_timestamp = "Could not get timestamp"
+        return EmbedField(backup, backup_timestamp)
 
     @nextcord.slash_command(name="admin", description="Server owner commands")
     async def _admin(self, interaction: Interaction):
@@ -159,16 +210,31 @@ class ServerCog (commands.Cog):
         if await self._verify_owner_and_reply(interaction):
             return
         else:
-            await interaction.response.defer(ephemeral=True)
-            try:
-                self.manager.restore_backup(name.strip())
-            except RuntimeError:
-                await interaction.send("Cannot restore while server is running.")
-            except FileNotFoundError:
-                await interaction.send("Specified backup does not exist.")
-            else:
-                await interaction.send("Backup restored.")
-                await interaction.channel.send(f"Backup restored by {interaction.user.mention}.")
+            name = name.strip()
+            button_timeout = 15
+            buttons = ConfirmButtons(timeout=button_timeout)
+            await interaction.send(f"Are you sure you want to restore {name}?", view=buttons, ephemeral=True)
+            while not buttons.is_finished():
+                await buttons.wait()
+                if buttons.user == interaction.user:  # ephemeral anyway, but can't hurt
+                    if buttons.value == ButtonEnums.DENY:
+                        await interaction.edit_original_message(content="Canceled restoration.", view=None)
+                    elif buttons.value == ButtonEnums.ACCEPT:
+                        try:
+                            await interaction.edit_original_message(content="Working...", view=None)
+                            self.manager.restore_backup(name)
+                        except RuntimeError:
+                            await interaction.edit_original_message(content="Cannot restore while server is running.", view=None)
+                        except FileNotFoundError:
+                            await interaction.edit_original_message(content="Specified backup does not exist.", view=None)
+                        else:
+                            await interaction.edit_original_message(content=f"Backup {name} restored.", view=None)
+                            await interaction.channel.send(f"Backup {name} restored by {interaction.user.mention}.")
+                elif buttons.user != None:
+                    buttons = ConfirmButtons(timeout=button_timeout)
+                    await interaction.edit_original_message(view=buttons)
+            if buttons.value == None:
+                await interaction.edit_original_message(content="Request timed out.", view=None)
 
     @_admin.subcommand(name="deletebackup", description="Delete a given backup")
     async def _ad_deletebackup(self, interaction: Interaction,
@@ -176,13 +242,28 @@ class ServerCog (commands.Cog):
         if await self._verify_owner_and_reply(interaction):
             return
         else:
-            await interaction.response.defer(ephemeral=True)
-            try:
-                self.manager.delete_backup(name.strip())
-            except FileNotFoundError:
-                await interaction.send("Specified backup does not exist.")
-            else:
-                await interaction.send("Backup deleted.")
+            name = name.strip()
+            button_timeout = 15
+            buttons = ConfirmButtons(timeout=button_timeout)
+            await interaction.send(f"Are you sure you want to delete {name}?", view=buttons, ephemeral=True)
+            while not buttons.is_finished():
+                await buttons.wait()
+                if buttons.user == interaction.user:  # ephemeral anyway, but can't hurt
+                    if buttons.value == ButtonEnums.DENY:
+                        await interaction.edit_original_message(content="Canceled deletion.", view=None)
+                    elif buttons.value == ButtonEnums.ACCEPT:
+                        try:
+                            await interaction.edit_original_message(content="Working...", view=None)
+                            self.manager.delete_backup(name.strip())
+                        except FileNotFoundError:
+                            await interaction.edit_original_message(content="Specified backup does not exist.", view=None)
+                        else:
+                            await interaction.edit_original_message(content=f"Backup {name} deleted.", view=None)
+                elif buttons.user != None:
+                    buttons = ConfirmButtons(timeout=button_timeout)
+                    await interaction.edit_original_message(view=buttons)
+            if buttons.value == None:
+                await interaction.edit_original_message(content="Request timed out.", view=None)
 
     @_admin.subcommand(name="op", description="Give a user operator status")
     async def _ad_op(self, interaction: Interaction,
@@ -216,28 +297,29 @@ class ServerCog (commands.Cog):
     async def _query(self, interaction: Interaction):
         if await self._verify_server_online_and_reply(interaction):
             return
-        response: dict = self.pinger.get_status()
-        version = response["version"]["name"]
-        players_max = response["players"]["max"]
-        players_online = response["players"]["online"]
-        players_text = ""
-        try:
-            players_list = response["players"]["sample"]
-            for player in players_list:
-                players_text += f"{player['name']}, "
-            players_text = players_text[:-2]
-        except KeyError:
-            pass
-        motd = response["description"]["text"]
-        fields = []
-        fields.append(EmbedField("Online", players_online, inline=True))
-        fields.append(EmbedField("Capacity", players_max, inline=True))
-        fields.append(EmbedField("Version", version, inline=True))
-        if players_text != "":
-            fields.append(EmbedField("Current Players", players_text, inline=False))
-        emb = embedhelper.build_embed(
-            *fields, title=f"{self._server_name}", description=motd, color=nextcord.Color.green())
-        await interaction.send(embed=emb)
+        else:
+            response: dict = self.pinger.get_status()
+            version = response["version"]["name"]
+            players_max = response["players"]["max"]
+            players_online = response["players"]["online"]
+            players_text = ""
+            try:
+                players_list = response["players"]["sample"]
+                for player in players_list:
+                    players_text += f"{player['name']}, "
+                players_text = players_text[:-2]
+            except KeyError:
+                pass
+            motd = response["description"]["text"]
+            fields = []
+            fields.append(EmbedField("Online", players_online, inline=True))
+            fields.append(EmbedField("Capacity", players_max, inline=True))
+            fields.append(EmbedField("Version", version, inline=True))
+            if players_text != "":
+                fields.append(EmbedField("Current Players", players_text, inline=False))
+            emb = embedhelper.build_embed(
+                *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
+            await interaction.send(embed=emb)
 
     async def _verify_operator_and_reply(self, interaction: Interaction):
         '''Return true if the user is NOT allowed to run operator commands, replying to the interaction if so.'''

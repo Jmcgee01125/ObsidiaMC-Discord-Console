@@ -182,16 +182,16 @@ class ServerManager:
                         oldest_backup = min(backup, oldest_backup)
                         total_backups += 1
                 if total_backups >= self._max_backups:
-                    self._delete_world(os.path.join(self._backup_directory, f"{oldest_backup}"))
-            backup_dir = os.path.join(self._backup_directory, f"{self._get_current_time()}")
+                    self._delete_world(os.path.join(self.backup_directory, f"{oldest_backup}"))
+            backup_dir = os.path.join(self.backup_directory, f"{self._get_current_time()}")
         # named backup
         else:
             backup_name = backup_name.strip()
-            if backup_name in os.listdir(self._backup_directory):
+            if backup_name in os.listdir(self.backup_directory):
                 await self._update_server_listeners("Failed to back up world: A backup with that name already exists")
                 return "Failed to back up world: A backup with that name already exists"
             else:
-                backup_dir = os.path.join(self._backup_directory, backup_name)
+                backup_dir = os.path.join(self.backup_directory, backup_name)
         try:
             world_dir = os.path.join(self.server_directory, self._level_name)
             self._copy_world(world_dir, backup_dir)
@@ -210,7 +210,7 @@ class ServerManager:
     def list_backups(self) -> list[str]:
         '''Returns a list of world backups.'''
         try:
-            return os.listdir(self._backup_directory)
+            return os.listdir(self.backup_directory)
         except FileNotFoundError:
             return ""
 
@@ -226,7 +226,7 @@ class ServerManager:
         backup_list = self.list_backups()
         if backup in backup_list:
             world_dir = os.path.join(self.server_directory, self._level_name)
-            backup_dir = os.path.join(self._backup_directory, backup)
+            backup_dir = os.path.join(self.backup_directory, backup)
             self._delete_world(world_dir)
             self._copy_world(backup_dir, world_dir)
         else:
@@ -240,7 +240,7 @@ class ServerManager:
         '''
         backup_list = self.list_backups()
         if backup in backup_list:
-            backup_dir = os.path.join(self._backup_directory, backup)
+            backup_dir = os.path.join(self.backup_directory, backup)
             self._delete_world(backup_dir)
         else:
             raise FileNotFoundError("Specified backup does not exist.")
@@ -301,7 +301,7 @@ class ServerManager:
             self._do_backups = config.get("Backups", "backup").lower() == "true"
             self._max_backups = int(config.get("Backups", "max_backups"))
             self._backup_datetime = config.get("Backups", "backup_datetime")
-            self._backup_directory = os.path.join(self.server_directory, config.get("Backups", "backup_folder"))
+            self.backup_directory = os.path.join(self.server_directory, config.get("Backups", "backup_folder"))
 
             config.write()
         except Exception as e:
