@@ -14,7 +14,6 @@ from bot.helpers.embedhelper import EmbedField
 import bot.helpers.embedhelper as embedhelper
 from server.server_ping import StatusPing
 from nextcord.ext import commands
-from bot.helpers import symbols
 from datetime import datetime
 import threading
 import nextcord
@@ -49,16 +48,11 @@ class ServerCog (commands.Cog):
         backup(name: `str`)
         listbackups()
     admin()
-        restore(ame: `str`)
+        restore(name: `str`)
         deletebackup(name: `str`)
         op(user: `nextcord.User`)
         deop(user: `nextcord.User`)
     query()
-
-    Methods
-    -------
-    report_help() -> `list[commandhelp.CommandHelp]`
-        Report command help list
     '''
 
     def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str, server_name: str = "Minecraft Server"):

@@ -24,11 +24,6 @@ class PingCog (commands.Cog):
     Commands
     --------
     ping()
-
-    Methods
-    -------
-    report_help() -> `list[commandhelp.CommandHelp]`
-        Report command help list
     '''
 
     def __init__(self, client: nextcord.Client):

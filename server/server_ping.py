@@ -28,7 +28,6 @@
 import socket
 import struct
 import json
-import time
 
 
 class StatusPing:

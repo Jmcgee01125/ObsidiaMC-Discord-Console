@@ -5,11 +5,6 @@ server_jar
 The name of the server jar, such as server.jar (a vanilla jar).
 Some versions, like fabric, may use alternates.
 
-server_name
-The name of the server as it should appear in interfaces.
-This has no effect on the server itself.
-If left blank, the directory of the server is used instead.
-
 args
 Server startup arguments, like setting the amount of RAM.
 These arguments are parsed as "java <args> -jar <jarname> -nogui"
@@ -29,7 +24,7 @@ Players are given a 15 minute, 5 minute, and 1 minute warning before restarts.
 
 restart_on_crash
 Automatically restart the server when it goes down.
-You MUST send a stop command via the web console to fully shut down a server.
+You MUST send a stop command via Discord to fully shut down a server.
 (Stop commands sent in-game will be interpreted as crashes).
 
 
@@ -58,7 +53,7 @@ This folder is nested within the server's directory.
 
 
 directory
-The directory where server is located.
+The directory where the server is located.
 This is the directory that contains server.jar.
 Directories from root/C/whatever are recommended, but not required (relative to the cwd of the program).
 
@@ -66,6 +61,8 @@ Directories from root/C/whatever are recommended, but not required (relative to 
 ip
 The ip that users will connect to.
 This is only used in the information displayed in the Discord activity ("Playing 192.168.1.1") and queries ("192.168.1.1:25565").
+As such, you can technically make it whatever you want. Note that the port is always appended (e.g. "MyServer:25565").
+If left blank, the name will instead simply be "Minecraft Server" with no other information.
 
 
 ----- [operators.txt] -----
@@ -79,6 +76,6 @@ This file is updated using the /server op and /server deop commands.
 
 
 A list of Discord account IDs that have owner status.
-This file can only be written to manually, and represents the highest form of ownership.
+This file can only be updated manually, and represents the highest form of ownership.
 To find your account ID, enable developer mode on Discord and right click your name -> Copy ID.
 Owners are automatically added to the list of operators, so it is not necessary to op yourself as an owner.

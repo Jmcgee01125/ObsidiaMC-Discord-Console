@@ -289,9 +289,6 @@ class ServerManager:
         # NOTE: the config items could be None or invalid in some cases, but crashing is fine in these circumstances
         try:
             self._server_jar = config.get("Server Information", "server_jar")
-            self._server_name = config.get("Server Information", "server_name")
-            if self._server_name == "":
-                self._server_name = None
             self._args = config.get("Server Information", "args").split(" ")
 
             self._do_autorestart = config.get("Restarts", "autorestart").lower() == "true"
