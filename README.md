@@ -53,7 +53,7 @@ Automatic, user-defined restarts and backups.
 3) Create a file named ".env" in the directory containing \_\_main__.py.
 
     1) Add "DISCORD_TOKEN=<your bot's Discord token>" to the file, e.g. DISCORD_TOKEN=abcdefg
-  
+
 4) Start the program by running \_\_main__.py.
   
     1) Quit by using Ctrl+C in the terminal that the program runs in.
@@ -63,4 +63,13 @@ Automatic, user-defined restarts and backups.
 
 ## Screenshots
 
+![query](https://user-images.githubusercontent.com/38796431/161887885-3316afa7-e788-46c0-bd1f-6335a5f6a49b.png)
+
+![authorization](https://user-images.githubusercontent.com/38796431/161887939-b42b1cb1-67ca-41c2-b1e2-bde1c797e246.png)
+
+![arbitrary commands](https://user-images.githubusercontent.com/38796431/161887954-5e2bfa99-b324-42e3-89e0-efc42095e4c5.png)
+
+![server log](https://user-images.githubusercontent.com/38796431/161887919-c65147a8-2154-4745-afb4-67014929e94e.png)
+
+![backup list](https://user-images.githubusercontent.com/38796431/161887949-742256f8-a419-49f2-9230-a6b83433b8cc.png)
 
