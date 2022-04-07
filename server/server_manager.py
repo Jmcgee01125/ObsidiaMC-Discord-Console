@@ -307,7 +307,9 @@ class ServerManager:
         try:
             self._server_jar = config.get("Server Information", "server_jar")
             self._args = config.get("Server Information", "args").split(" ")
-            self._worlds = config.get("Server Information", "world_folders").split(", ")
+            self._worlds = config.get("Server Information", "world_folders").split(",")
+            for i in range(len(self._worlds)):
+                self._worlds[i] = self._worlds[i].strip()
 
             self._do_autorestart = config.get("Restarts", "autorestart").lower() == "true"
             self._autorestart_datetime = config.get("Restarts", "autorestart_datetime")

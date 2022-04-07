@@ -10,7 +10,6 @@ A list of world folders to back up, comma separated.
 For example, both of the following are valid:
     world_folders=world
     world_folders=world, world_nether, world_the_end
-    NOT VALID: world_folders=world,world_nether (note the lack of a space)
 These worlds should be in the same directory as server.jar, and are subject to backup/restore operations.
 
 args
