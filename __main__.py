@@ -27,18 +27,17 @@ class ConsolePrintListener:
 
 
 if __name__ == "__main__":
-    master_dir = os.path.dirname(__file__)  # HACK, but it works to get the directory relative to this accurately
-    config_dir = os.path.join(master_dir, "config")
-    config_file = os.path.join(config_dir, "obsidia.conf")
+    os.chdir(os.path.dirname(__file__))  # HACK, but it works to get the directory relative to this accurately without breaking root dirs
+    config_file = os.path.join("config", "obsidia.conf")
     configs = ObsidiaConfigParser(config_file)
-    server_dir = os.path.join(master_dir, configs.get("Server", "directory"))
+    server_dir = configs.get("Server", "directory")
     ip = configs.get("Server", "ip")
 
     manager = ServerManager(server_dir, config_file)
     listener = ConsolePrintListener(manager)
     listener.start()
 
-    discord_server.prep_client(manager, os.path.join(config_dir, "operators.txt"), os.path.join(config_dir, "owners.txt"), ip)
+    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip)
     discord_server.start_client()
 
     listener.stop()
