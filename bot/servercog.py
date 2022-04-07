@@ -97,11 +97,8 @@ class ServerCog (commands.Cog):
         if await self._verify_operator_and_reply(interaction) or await self._verify_server_online_and_reply(interaction):
             return
         else:
-            special_result = self.manager.stop_server()
-            if special_result != None:
-                await interaction.send(special_result, ephemeral=True)
-            else:
-                await interaction.send("Server shut down.")
+            await interaction.send("Shutting down server.")
+            self.manager.stop_server()
 
     @_server.subcommand(name="start", description="Start up the server")
     async def _sv_start(self, interaction: Interaction):

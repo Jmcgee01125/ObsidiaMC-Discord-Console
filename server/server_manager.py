@@ -230,7 +230,7 @@ class ServerManager:
         backup_list = self.list_backups()
         if backup in backup_list:
             await self._update_server_listeners(f"Restoring backup {backup}")
-            for world in self._worlds:
+            for world in os.listdir(os.path.join(self.backup_directory, backup)):
                 world_dir = os.path.join(self.server_directory, world)
                 backup_dir = os.path.join(self.backup_directory, os.path.join(backup, world))
                 self._delete_world(world_dir)
