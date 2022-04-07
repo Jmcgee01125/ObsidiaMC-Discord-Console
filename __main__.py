@@ -27,10 +27,11 @@ class ConsolePrintListener:
 
 
 if __name__ == "__main__":
-    config_dir = os.path.join(os.path.dirname(__file__), "config")  # HACK, but it works to get the config dir accurately
+    master_dir = os.path.dirname(__file__)  # HACK, but it works to get the directory relative to this accurately
+    config_dir = os.path.join(master_dir, "config")
     config_file = os.path.join(config_dir, "obsidia.conf")
     configs = ObsidiaConfigParser(config_file)
-    server_dir = configs.get("Server", "directory")
+    server_dir = os.path.join(master_dir, configs.get("Server", "directory"))
     ip = configs.get("Server", "ip")
 
     manager = ServerManager(server_dir, config_file)

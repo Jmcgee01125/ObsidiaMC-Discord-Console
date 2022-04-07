@@ -55,7 +55,7 @@ This folder is nested within the server's directory.
 directory
 The directory where the server is located.
 This is the directory that contains server.jar.
-Directories from root/C/whatever are recommended, but not required (relative to the cwd of the program).
+Directories from root/C/whatever are recommended, but not required (relative to the location of __main__.py).
 
 
 ip
