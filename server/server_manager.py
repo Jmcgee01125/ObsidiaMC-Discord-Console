@@ -33,6 +33,8 @@ class ServerManager:
         self.server_directory = os.path.abspath(server_directory)
         self.config_file = config_file
         self._server_should_be_running = False
+        self._save_is_off = False
+        self._doing_backup = False
         self._reset_server_startup_vars()
         self.server = ServerRunner(self.server_directory, jarname=self._server_jar, args=self._args)
 
@@ -97,7 +99,7 @@ class ServerManager:
             while (await self.server_running()):
                 await asyncio.sleep(5)  # longer causes high delay between server shutdown and server appearing shut down in _server_should_be_running
 
-                if self._do_autorestart:
+                if self._do_autorestart and not self._doing_backup:
                     new_time_until_restart = self._get_offset_until(self._autorestart_datetime)
                     if new_time_until_restart > time_until_restart:  # passed timestamp, it's sending next occurrence
                         self.write("say Restarting now!")
@@ -117,17 +119,21 @@ class ServerManager:
                         await self.backup_world()
                     time_until_backup = new_time_until_backup
 
+                if self._save_is_off and not self._doing_backup:  # edge case for backing up as server shuts down
+                    self.set_saving(True)
+
             # clean up after the server closes based on whether or not we need to restart
-            if self._is_autorestarting:
-                await self._update_server_listeners("Automatically restarting")
-                self._reset_server_startup_vars()
-                await self._spawn_server()
-            elif self._restart_on_crash and not self._sent_stop_signal:
-                await self._update_server_listeners("Detected server crash: Restarting")
-                self._reset_server_startup_vars()
-                await self._spawn_server()
-            else:
-                self._server_should_be_running = False
+            if not self._doing_backup:
+                if self._is_autorestarting:
+                    await self._update_server_listeners("Automatically restarting")
+                    self._reset_server_startup_vars()
+                    await self._spawn_server()
+                elif self._restart_on_crash and not self._sent_stop_signal:
+                    await self._update_server_listeners("Detected server crash: Restarting")
+                    self._reset_server_startup_vars()
+                    await self._spawn_server()
+                else:
+                    self._server_should_be_running = False
 
     def _get_current_time(self) -> int:
         return int(time.time())
@@ -159,13 +165,14 @@ class ServerManager:
         If backup_name is not set, then it will use a timestamp and delete old backups to maintain max.
         If it is set, then that name will be used (after checking that it isn't already in use!).
         '''
+        # if we save-off/save-on while changing state, it's possible to permanently disable saving until the next backup
+        while self.server_should_be_running() and not self.server.is_ready() and await self.server_running():
+            await self._update_server_listeners("Waiting for world backup (server changing state)")
+            await asyncio.sleep(3)
+        self._doing_backup = True
+        # turn off autosaving while doing the backup to prevent conflicts
+        self.set_saving(False)
         await self._update_server_listeners("Backing up world")
-        # turn off autosaving while doing the backup to prevent conflicts, but server might be off already so try/except
-        if self.server.is_ready():
-            try:
-                self.write("save-off")
-            except Exception:
-                pass
         # timestamp backup
         if backup_name == None:
             if self._max_backups > 0:
@@ -200,11 +207,8 @@ class ServerManager:
             return f"Failed to back up world: {e}"
         # turn back on autosaving
         # NOTE: should probably save the initial state of it and set it back to that, rather than forcing it on (config?)
-        if self.server.is_ready():
-            try:
-                self.write("save-on")
-            except Exception:
-                pass
+        self.set_saving(True)
+        self._doing_backup = False
         await self._update_server_listeners("Backup completed")
 
     def list_backups(self) -> list[str]:
@@ -244,6 +248,17 @@ class ServerManager:
             self._delete_world(backup_dir)
         else:
             raise FileNotFoundError("Specified backup does not exist.")
+
+    def set_saving(self, state: bool):
+        if self.server.is_ready():
+            try:
+                if state:
+                    self.write("save-on")
+                else:
+                    self.write("save-off")
+                self._save_is_off = state
+            except Exception:
+                pass
 
     def _copy_world(self, source, destination):
         shutil.copytree(source, destination, ignore=shutil.ignore_patterns("*.lock"))
