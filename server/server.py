@@ -13,8 +13,6 @@ class ServerRunner:
     ----------
     server_directory: `str`
         The path to the directory of this server's jar file
-    server_name: `str`
-        The name of this server, or None to use the lowest directory of the server directory (i.e. Servers/ServerName/server.jar -> ServerName)
     jarname: `str`
         The server jar, default "server.jar"
     args: `list[str]`
@@ -29,13 +27,9 @@ class ServerRunner:
         The name of the server being run (note that this is not necessarily read from the config file)
     '''
 
-    def __init__(self, server_directory: str, server_name: str = None, jarname: str = "server.jar", args: list[str] = []):
+    def __init__(self, server_directory: str, jarname: str = "server.jar", args: list[str] = []):
         self._is_ready = False
         self.server_directory = os.path.abspath(server_directory)
-        if (server_name == None):
-            self.server_name = os.path.basename(server_directory)
-        else:
-            self.server_name = server_name
         self._jarname = jarname
         self._args = args
         self._server = None
@@ -91,7 +85,7 @@ class ServerRunner:
         The subscriber must contain the function "update(message: `str`)", otherwise throws AttributeError when adding listener.
         '''
         try:
-            listener_object.update(f"Subscribed to logs for {self.server_name}.")
+            listener_object.update(f"Subscribed to server logs.")
         except AttributeError:
             raise AttributeError("Listener does not contain update(message: str) attribute.")
         else:
@@ -105,7 +99,7 @@ class ServerRunner:
             pass
         else:
             try:
-                listener_object.update(f"Unsubscribed from logs for {self.server_name}.")
+                listener_object.update(f"Unsubscribed from server logs.")
             except AttributeError:
                 raise AttributeError("Listener does not contain update(message: str) attribute.")
 

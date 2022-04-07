@@ -3,7 +3,6 @@ from config.configs import ObsidiaConfigParser
 import bot.discord_server as discord_server
 from server.server import ServerListener
 import threading
-import asyncio
 import os
 
 
@@ -28,7 +27,8 @@ class ConsolePrintListener:
 
 
 if __name__ == "__main__":
-    config_file = os.path.join("config", "obsidia.conf")
+    config_dir = os.path.join(os.path.dirname(__file__), "config")  # HACK, but it works to get the config dir accurately
+    config_file = os.path.join(config_dir, "obsidia.conf")
     configs = ObsidiaConfigParser(config_file)
     server_dir = configs.get("Server", "directory")
     ip = configs.get("Server", "ip")
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     listener = ConsolePrintListener(manager)
     listener.start()
 
-    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip)
+    discord_server.prep_client(manager, os.path.join(config_dir, "operators.txt"), os.path.join(config_dir, "owners.txt"), ip)
     discord_server.start_client()
 
     listener.stop()

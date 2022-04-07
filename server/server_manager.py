@@ -34,7 +34,7 @@ class ServerManager:
         self.config_file = config_file
         self._server_should_be_running = False
         self._reset_server_startup_vars()
-        self.server = ServerRunner(self.server_directory, server_name=self.get_name(), jarname=self._server_jar, args=self._args)
+        self.server = ServerRunner(self.server_directory, jarname=self._server_jar, args=self._args)
 
     def _reset_server_startup_vars(self):
         '''Initial vars are those that need to be reset every time the server is launched.'''
@@ -309,13 +309,6 @@ class ServerManager:
         if (await self.server_running()):
             return self._get_current_time() - self._server_start_time
         return 0
-
-    def get_name(self) -> str:
-        '''Get the name of the server in use.'''
-        if self._server_name != None:
-            return self._server_name
-        else:
-            return os.path.basename(self.server_directory)
 
     def get_latest_log(self) -> list[str]:
         '''Get a list of all console logs for the latest server session.'''
