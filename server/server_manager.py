@@ -200,8 +200,8 @@ class ServerManager:
             else:
                 backup_dir = os.path.join(self.backup_directory, backup_name)
         try:
-            world_dir = os.path.join(self.server_directory, self._level_name)
-            self._copy_world(world_dir, backup_dir)
+            for world in self._worlds:
+                self._copy_world(os.path.join(self.server_directory, world), os.path.join(backup_dir, world))
         except Exception as e:
             await self._update_server_listeners(f"Failed to back up world: {e}")
             return f"Failed to back up world: {e}"
@@ -218,7 +218,7 @@ class ServerManager:
         except FileNotFoundError:
             return ""
 
-    def restore_backup(self, backup: str):
+    async def restore_backup(self, backup: str):
         '''
         Restores a backup with the specified name.
 
@@ -229,10 +229,13 @@ class ServerManager:
             raise RuntimeError("Cannot restore backup while server is running.")
         backup_list = self.list_backups()
         if backup in backup_list:
-            world_dir = os.path.join(self.server_directory, self._level_name)
-            backup_dir = os.path.join(self.backup_directory, backup)
-            self._delete_world(world_dir)
-            self._copy_world(backup_dir, world_dir)
+            await self._update_server_listeners(f"Restoring backup {backup}")
+            for world in self._worlds:
+                world_dir = os.path.join(self.server_directory, world)
+                backup_dir = os.path.join(self.backup_directory, os.path.join(backup, world))
+                self._delete_world(world_dir)
+                self._copy_world(backup_dir, world_dir)
+            await self._update_server_listeners("Restoration complete")
         else:
             raise FileNotFoundError("Specified backup does not exist.")
 
@@ -256,7 +259,7 @@ class ServerManager:
                     self.write("save-on")
                 else:
                     self.write("save-off")
-                self._save_is_off = state
+                self._save_is_off = not state
             except Exception:
                 pass
 
@@ -285,7 +288,6 @@ class ServerManager:
     def _load_server_information(self):
         try:
             config = MCPropertiesParser(os.path.join(self.server_directory, "server.properties"))
-            self._level_name = config.get("level-name").strip()
             self._motd = config.get("motd").strip()
             self._port = int(config.get("query.port"))
         except FileNotFoundError:
@@ -305,6 +307,7 @@ class ServerManager:
         try:
             self._server_jar = config.get("Server Information", "server_jar")
             self._args = config.get("Server Information", "args").split(" ")
+            self._worlds = config.get("Server Information", "world_folders").split(", ")
 
             self._do_autorestart = config.get("Restarts", "autorestart").lower() == "true"
             self._autorestart_datetime = config.get("Restarts", "autorestart_datetime")

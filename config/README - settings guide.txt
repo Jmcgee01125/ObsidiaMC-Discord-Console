@@ -5,6 +5,14 @@ server_jar
 The name of the server jar, such as server.jar (a vanilla jar).
 Some versions, like fabric, may use alternates.
 
+world_folders
+A list of world folders to back up, comma separated.
+For example, both of the following are valid:
+    world_folders=world
+    world_folders=world, world_nether, world_the_end
+    NOT VALID: world_folders=world,world_nether (note the lack of a space)
+These worlds should be in the same directory as server.jar, and are subject to backup/restore operations.
+
 args
 Server startup arguments, like setting the amount of RAM.
 These arguments are parsed as "java <args> -jar <jarname> -nogui"

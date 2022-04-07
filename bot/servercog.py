@@ -246,7 +246,7 @@ class ServerCog (commands.Cog):
                     elif buttons.value == ButtonEnums.ACCEPT:
                         try:
                             await interaction.edit_original_message(content="Working...", view=None)
-                            self.manager.restore_backup(name)
+                            await self.manager.restore_backup(name)
                         except RuntimeError:
                             await interaction.edit_original_message(content="Cannot restore while server is running.", view=None)
                         except FileNotFoundError:
