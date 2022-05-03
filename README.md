@@ -6,9 +6,11 @@ Python and Nextcord-based Minecraft console using Discord to issue commands.
 
 ## Requirements
 
-python 3.9+
+python 3.8+
 
 nextcord (pip install nextcord)
+
+dotenv (pip install python-dotenv)
 
 ---
 

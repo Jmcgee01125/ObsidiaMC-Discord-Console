@@ -1,3 +1,4 @@
+from typing import List
 import subprocess
 import threading
 import asyncio
@@ -27,7 +28,7 @@ class ServerRunner:
         The name of the server being run (note that this is not necessarily read from the config file)
     '''
 
-    def __init__(self, server_directory: str, jarname: str = "server.jar", args: list[str] = []):
+    def __init__(self, server_directory: str, jarname: str = "server.jar", args: List[str] = []):
         self._is_ready = False
         self.server_directory = os.path.abspath(server_directory)
         self._jarname = jarname

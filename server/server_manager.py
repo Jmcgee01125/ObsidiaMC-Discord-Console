@@ -1,6 +1,7 @@
 from config.configs import MCPropertiesParser, ObsidiaConfigParser
 from server.server import ServerRunner
 from datetime import datetime
+from typing import List
 import asyncio
 import shutil
 import time
@@ -211,7 +212,7 @@ class ServerManager:
         self._doing_backup = False
         await self._update_server_listeners("Backup completed")
 
-    def list_backups(self) -> list[str]:
+    def list_backups(self) -> List[str]:
         '''Returns a list of world backups.'''
         try:
             return os.listdir(self.backup_directory)
@@ -330,7 +331,7 @@ class ServerManager:
             return self._get_current_time() - self._server_start_time
         return 0
 
-    def get_latest_log(self) -> list[str]:
+    def get_latest_log(self) -> List[str]:
         '''Get a list of all console logs for the latest server session.'''
         try:
             log_file = open(os.path.join(self.server_directory, "logs", "latest.log"), "r")
