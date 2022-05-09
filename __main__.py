@@ -44,7 +44,7 @@ if __name__ == "__main__":
     listener.start()
 
     discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip)
-    discord_server.start_client()
+    discord_server.start_client()  # block
 
     listener.stop()
     stop_server_result = manager.stop_server()

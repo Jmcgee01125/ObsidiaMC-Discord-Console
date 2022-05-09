@@ -10,7 +10,7 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 INTENTS = nextcord.Intents.none()
 if DISCORD_TOKEN == None:
-    raise RuntimeError("Could not find DISCORD_TOKEN in .env file")
+    raise RuntimeError("Could not find DISCORD_TOKEN in .env file. Did you create a bot?")
 
 
 def prep_client(manager: ServerManager, operators_file: str, owners_file: str, ip: str = None):
@@ -40,6 +40,7 @@ def start_client():
 
     Send KeyboardInterrupt to call client.close() and return control.
     '''
+    print("Starting Discord client. Don't forget to run /server start to boot your server.")
     c_run = asyncio.ensure_future(client.start(DISCORD_TOKEN))
     loop = asyncio.get_event_loop()
     try:
