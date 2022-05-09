@@ -24,6 +24,8 @@ Start, stop, and send any Minecraft console commands.
 
 Automatic, user-defined restarts and backups.
 
+/query command for any user to check the server status and connected players.
+
 ---
 
 ## Setup
@@ -68,7 +70,11 @@ Automatic, user-defined restarts and backups.
 
             2) "Send Messages" and "Use Slash Commands" bot permissions.
 
-4) Start the program by running \_\_main__.py.
+4) Add your Discord user ID to owners.txt, and any operators to operators.txt.
+
+    1) See the readme in the config folder for information about how to enter this info.
+
+5) Start the program by running \_\_main__.py.
   
     1) Quit by using Ctrl+C in the terminal that the program runs in.
 

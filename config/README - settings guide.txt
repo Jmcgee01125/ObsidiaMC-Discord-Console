@@ -75,14 +75,15 @@ If left blank, the name will instead simply be "Minecraft Server" with no other 
 ----- [operators.txt] -----
 
 
-A list of Discord account IDs that have operator status.
-This file is updated using the /server op and /server deop commands.
+A list of Discord account IDs (one per line) that have operator status.
+You can get this by enabling developer mode on Discord and doing right click -> Copy ID on the account name name.
+This file is also updated using the /server op and /server deop commands (as owner).
 
 
 ----- [owners.txt] -----
 
 
-A list of Discord account IDs that have owner status.
+A list of Discord account IDs (one per line) that have owner status.
+You can get this by enabling developer mode on Discord and doing right click -> Copy ID on the account name.
 This file can only be updated manually, and represents the highest form of ownership.
-To find your account ID, enable developer mode on Discord and right click your name -> Copy ID.
 Owners are automatically added to the list of operators, so it is not necessary to op yourself as an owner.
