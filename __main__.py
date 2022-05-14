@@ -3,6 +3,7 @@ from config.configs import ObsidiaConfigParser
 import bot.discord_server as discord_server
 from server.server import ServerListener
 import threading
+import asyncio
 import time
 import os
 
@@ -21,6 +22,7 @@ class ConsolePrintListener:
     def _print_queue(self):
         self._listener.subscribe()
         while (not self._should_shut_down):
+            asyncio.run(asyncio.sleep(0.05))
             if (self._listener.has_next()):
                 entry = self._listener.next()
                 print(entry)
