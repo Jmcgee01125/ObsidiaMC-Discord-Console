@@ -7,6 +7,7 @@ ServerCog
 '''
 
 
+from typing import Callable, List
 from bot.buttonviews import ButtonEnums, ConfirmButtons, PageButtons
 from nextcord import Interaction, SlashOption, Embed
 from server.server_manager import ServerManager
@@ -89,7 +90,7 @@ class ServerCog (commands.Cog):
         if special_result != None:
             await interaction.send(special_result, ephemeral=True)
         else:
-            await interaction.send(f"Command sent.")
+            await interaction.send(f"Command sent.", ephemeral=True)
 
     @_server.subcommand(name="stop", description="Shut down the server")
     async def _sv_stop(self, interaction: Interaction):
@@ -121,34 +122,17 @@ class ServerCog (commands.Cog):
     async def _sv_log(self, interaction: Interaction):
         if await self._verify_operator_and_reply(interaction):
             return
+
         embed_title = "Server Log"
         log_entries = self.manager.get_latest_log()
-        if len(log_entries) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
 
-            def build_log_embed_with_offset() -> Embed:
-                content = ""
-                for i in range(max(0, index), min(index + 10, len(log_entries))):
-                    content += f"{log_entries[i]}\n"
-                return embedhelper.build_embed(title=embed_title, description=content, color=self._embed_color)
+        def build_log_embed_with_offset(logs: List[str], title: str, index: int) -> Embed:
+            content = ""
+            for i in range(max(0, index), min(index + 10, len(logs))):
+                content += f"{logs[i]}\n"
+            return embedhelper.build_embed(title=title, description=content, color=self._embed_color)
 
-            index = len(log_entries) - 10
-            button_timeout = 60
-            page_buttons = PageButtons(timeout=button_timeout)
-            await interaction.send(embed=build_log_embed_with_offset(), view=page_buttons, ephemeral=True)
-
-            while not page_buttons.is_finished():
-                await page_buttons.wait()
-                if page_buttons.value == ButtonEnums.LEFT:
-                    if index > 0:
-                        index -= 10
-                    page_buttons = PageButtons(timeout=button_timeout)
-                    await interaction.edit_original_message(embed=build_log_embed_with_offset(), view=page_buttons)
-                elif page_buttons.value == ButtonEnums.RIGHT:
-                    if index < len(log_entries) - 10:
-                        index += 10
-                    page_buttons = PageButtons(timeout=button_timeout)
-                    await interaction.edit_original_message(embed=build_log_embed_with_offset(), view=page_buttons)
-            await interaction.edit_original_message(view=None)
+        self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset)
 
     @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
@@ -170,37 +154,17 @@ class ServerCog (commands.Cog):
         if await self._verify_operator_and_reply(interaction):
             return
         embed_title = "Available Backups"
-        backups = self.manager.list_backups()
-        if len(backups) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
-
-            def build_backup_embed_with_offset() -> Embed:
+        backup_list = self.manager.list_backups()
+        if len(backup_list) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
+            def build_backup_embed_with_offset(backups: List[str], title: str, index: int) -> Embed:
                 fields = []
                 for i in range(index, min(index + 10, len(backups))):
                     fields.append(self._build_backup_field(backups[i]))
-                return embedhelper.build_embed(*fields, title=embed_title, color=self._embed_color)
-
-            index = 0
-            button_timeout = 30
-            page_buttons = PageButtons(timeout=button_timeout)
-            await interaction.send(embed=build_backup_embed_with_offset(), view=page_buttons, ephemeral=True)
-
-            while not page_buttons.is_finished():
-                await page_buttons.wait()
-                if page_buttons.value == ButtonEnums.LEFT:
-                    if index > 0:
-                        index -= 10
-                    page_buttons = PageButtons(timeout=button_timeout)
-                    await interaction.edit_original_message(embed=build_backup_embed_with_offset(), view=page_buttons)
-                elif page_buttons.value == ButtonEnums.RIGHT:
-                    if index < len(backups) - 10:
-                        index += 10
-                    page_buttons = PageButtons(timeout=button_timeout)
-                    await interaction.edit_original_message(embed=build_backup_embed_with_offset(), view=page_buttons)
-            await interaction.edit_original_message(view=None)
-
+                return embedhelper.build_embed(*fields, title=title, color=self._embed_color)
+            self._manage_pageable_embed(interaction, backup_list, embed_title, build_backup_embed_with_offset)
         else:  # less than 10, no need for buttons
             fields = []
-            for backup in backups:
+            for backup in backup_list:
                 fields.append(self._build_backup_field(backup))
             emb = embedhelper.build_embed(*fields, title=embed_title, color=self._embed_color)
             await interaction.send(embed=emb, ephemeral=True)
@@ -333,6 +297,25 @@ class ServerCog (commands.Cog):
         emb = embedhelper.build_embed(
             *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
         await interaction.send(embed=emb)
+
+    async def _manage_pageable_embed(self, interaction: Interaction, items: List, embed_title: str, embed_builder: Callable[[List, str, int], nextcord.Embed]):
+        index = 0
+        button_timeout = 30
+        page_buttons = PageButtons(timeout=button_timeout)
+        await interaction.send(embed=embed_builder(items, embed_title, index), view=page_buttons, ephemeral=True)
+        while not page_buttons.is_finished():
+            await page_buttons.wait()
+            if page_buttons.value == ButtonEnums.LEFT:
+                if index > 0:
+                    index -= 10
+                page_buttons = PageButtons(timeout=button_timeout)
+                await interaction.edit_original_message(embed=embed_builder(items, embed_title, index), view=page_buttons)
+            elif page_buttons.value == ButtonEnums.RIGHT:
+                if index < len(items) - 10:
+                    index += 10
+                page_buttons = PageButtons(timeout=button_timeout)
+                await interaction.edit_original_message(embed=embed_builder(items, embed_title, index), view=page_buttons)
+        await interaction.edit_original_message(view=None)
 
     async def _verify_operator_and_reply(self, interaction: Interaction):
         '''Return true if the user is NOT allowed to run operator commands, replying to the interaction if so.'''
