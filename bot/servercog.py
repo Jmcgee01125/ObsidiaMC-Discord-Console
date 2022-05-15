@@ -132,7 +132,7 @@ class ServerCog (commands.Cog):
                 content += f"{logs[i]}\n"
             return embedhelper.build_embed(title=title, description=content, color=self._embed_color)
 
-        self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset)
+        await self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset)
 
     @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
@@ -161,7 +161,7 @@ class ServerCog (commands.Cog):
                 for i in range(index, min(index + 10, len(backups))):
                     fields.append(self._build_backup_field(backups[i]))
                 return embedhelper.build_embed(*fields, title=title, color=self._embed_color)
-            self._manage_pageable_embed(interaction, backup_list, embed_title, build_backup_embed_with_offset)
+            await self._manage_pageable_embed(interaction, backup_list, embed_title, build_backup_embed_with_offset)
         else:  # less than 10, no need for buttons
             fields = []
             for backup in backup_list:
@@ -298,7 +298,7 @@ class ServerCog (commands.Cog):
             *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
         await interaction.send(embed=emb)
 
-    async def _manage_pageable_embed(self, interaction: Interaction, items: List, embed_title: str, embed_builder: Callable[[List, str, int], nextcord.Embed]):
+    async def _manage_pageable_embed(self, interaction: Interaction, items: List, embed_title: str, embed_builder: Callable[[List, str, int], Embed]):
         index = 0
         button_timeout = 30
         page_buttons = PageButtons(timeout=button_timeout)
