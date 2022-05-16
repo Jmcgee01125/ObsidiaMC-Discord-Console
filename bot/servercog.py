@@ -132,7 +132,7 @@ class ServerCog (commands.Cog):
                 content += f"{logs[i]}\n"
             return embedhelper.build_embed(title=title, description=content, color=self._embed_color)
 
-        await self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset)
+        await self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset, start_index=len(log_entries) - 10)
 
     @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
@@ -298,8 +298,13 @@ class ServerCog (commands.Cog):
             *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
         await interaction.send(embed=emb)
 
-    async def _manage_pageable_embed(self, interaction: Interaction, items: List, embed_title: str, embed_builder: Callable[[List, str, int], Embed]):
-        index = 0
+    async def _manage_pageable_embed(self,
+                                     interaction: Interaction,
+                                     items: List,
+                                     embed_title: str,
+                                     embed_builder: Callable[[List, str, int], Embed],
+                                     start_index: int = 0):
+        index = start_index
         button_timeout = 30
         page_buttons = PageButtons(timeout=button_timeout)
         await interaction.send(embed=embed_builder(items, embed_title, index), view=page_buttons, ephemeral=True)
