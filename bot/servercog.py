@@ -272,7 +272,8 @@ class ServerCog (commands.Cog):
             await interaction.send(f"Removed {user.mention} from operator pool.")
 
     @nextcord.slash_command(name="query", description="Query the server's state")
-    async def _query(self, interaction: Interaction):
+    async def _query(self, interaction: Interaction,
+                     hidden: bool = SlashOption(default=True, required=False, name="hidden", description="Make false to let everyone see this query")):
         if await self._verify_server_online_and_reply(interaction):
             return
         response: dict = self.pinger.get_status()
@@ -296,7 +297,7 @@ class ServerCog (commands.Cog):
             fields.append(EmbedField("Current Players", players_text, inline=False))
         emb = embedhelper.build_embed(
             *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
-        await interaction.send(embed=emb)
+        await interaction.send(embed=emb, ephemeral=hidden)
 
     async def _manage_pageable_embed(self,
                                      interaction: Interaction,
