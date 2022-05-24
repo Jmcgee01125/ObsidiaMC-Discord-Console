@@ -67,15 +67,15 @@ Directories from root/C/whatever are recommended, but not required (relative to 
 ip
 The ip that users will connect to.
 This is only used in the information displayed in the Discord activity ("Playing 192.168.1.1") and queries ("192.168.1.1:25565").
-As such, you can technically make it whatever you want. Note that the port is always appended (e.g. "MyServer:25565").
-If left blank, the name will instead simply be "Minecraft" with no other information.
+Note that the port is always appended in queries, but not the activity (e.g. "Playing MyServer.net" and "MyServer.net:25565").
+If left blank, the name will instead simply be "Minecraft" (activity) and "Minecraft Server" (query) with no other information.
 
 
 ----- [operators.txt] -----
 
 
 A list of Discord account IDs (one per line) that have operator status.
-You can get this by enabling developer mode on Discord and doing right click -> Copy ID on the account name name.
+You can get this by enabling developer mode on Discord and doing right click -> Copy ID on the account name.
 This file is also updated using the /server op and /server deop commands (as owner).
 
 
