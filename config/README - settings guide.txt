@@ -45,9 +45,10 @@ max_backups
 The maximum number of backups to keep.
 Older backups will be deleted when new ones are made.
 To disable, use a value less than or equal to 0.
+Only backups created automatically (their name is an integer timestamp, e.g. "1622694042") are subject to this limitation.
 
 backup_datetime
-The datetime to backup the server at (No effect if backup is false).
+The datetime to backup the server at (no effect if backup is false).
 Follows the format of SMTWRFD HHMM, where SMTWRFD indicates days (Sun -> Sat) when a backup should occur.
 HHMM is the time, in 24 hour time (0000 -> 2359) that the backup should happen at.
 
@@ -67,7 +68,7 @@ Directories from root/C/whatever are recommended, but not required (relative to 
 ip
 The ip that users will connect to.
 This is only used in the information displayed in the Discord activity ("Playing 192.168.1.1") and queries ("192.168.1.1:25565").
-Note that the port is always appended in queries, but not the activity (e.g. "Playing MyServer.net" and "MyServer.net:25565").
+Note that the port (from server.properties) is always appended in queries, but not the activity (e.g. "Playing MyServer.net" and "MyServer.net:25565").
 If left blank, the name will instead simply be "Minecraft" (activity) and "Minecraft Server" (query) with no other information.
 
 
