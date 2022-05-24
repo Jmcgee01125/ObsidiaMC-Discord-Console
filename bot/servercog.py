@@ -147,7 +147,10 @@ class ServerCog (commands.Cog):
             await interaction.send(special_result)
         else:
             await interaction.send("Server backed up.")
-            await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")
+            try:
+                await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")
+            except AttributeError:
+                pass # potential issue when dming the bot
 
     @_server.subcommand(name="listbackups", description="Get a list of available backups")
     async def _sv_listbackups(self, interaction: Interaction):
@@ -174,7 +177,7 @@ class ServerCog (commands.Cog):
             backup_timestamp = datetime.fromtimestamp(int(backup)).strftime("%D %H:%M:%S")
         except ValueError:
             try:
-                st = os.stat(os.path.join(self.manager.backup_directory, backup)).st_ctime
+                st = os.path.getmtime(os.path.join(self.manager.backup_directory, backup))
                 backup_timestamp = datetime.fromtimestamp(int(st)).strftime("%D %H:%M:%S")
             except FileNotFoundError:
                 backup_timestamp = "Could not get timestamp"
