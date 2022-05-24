@@ -43,12 +43,6 @@ Automatic, user-defined restarts and backups.
     1) Change settings based on your preferences.
 
         1) If you're confused about settings, such as how to use SMTWRFD 0000, open the readme in the config folder.
-  
-        2) You can set defaults by changing settings in "config/obsidia_defaults.conf".
-
-            1) Honestly this isn't really that relevant, it was just functionality left over from the web console version.
-
-        3) Note that these config files are overwritten and filled in with defaults (for missing items only) when launched. Comments will be removed.
     
     2) Set the directory where your server is stored. This can be relative to \_\_main__.py, or absolute.
 
