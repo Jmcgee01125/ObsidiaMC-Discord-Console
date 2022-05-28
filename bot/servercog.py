@@ -7,7 +7,6 @@ ServerCog
 '''
 
 
-from typing import Callable, List
 from bot.buttonviews import ButtonEnums, ConfirmButtons, PageButtons
 from nextcord import Interaction, SlashOption, Embed
 from server.server_manager import ServerManager
@@ -15,6 +14,7 @@ from bot.helpers.embedhelper import EmbedField
 import bot.helpers.embedhelper as embedhelper
 from server.server_ping import StatusPing
 from nextcord.ext import commands
+from typing import Callable, List
 from datetime import datetime
 import threading
 import nextcord
@@ -150,14 +150,14 @@ class ServerCog (commands.Cog):
             try:
                 await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")
             except AttributeError:
-                pass # potential issue when dming the bot
+                pass  # potential issue when dming the bot
 
     @_server.subcommand(name="listbackups", description="Get a list of available backups")
     async def _sv_listbackups(self, interaction: Interaction):
         if await self._verify_operator_and_reply(interaction):
             return
         embed_title = "Available Backups"
-        backup_list = self.manager.list_backups()
+        backup_list = sorted(self.manager.list_backups())
         if len(backup_list) >= 10:  # max 10 fields per discord embed, so offer buttons to page through them
             def build_backup_embed_with_offset(backups: List[str], title: str, index: int) -> Embed:
                 fields = []
