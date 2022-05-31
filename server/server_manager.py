@@ -336,5 +336,5 @@ class ServerManager:
         try:
             log_file = open(os.path.join(self.server_directory, "logs", "latest.log"), "r")
         except IOError:
-            return "No latest log found."
+            return ["No latest log found."]
         return log_file.readlines()
