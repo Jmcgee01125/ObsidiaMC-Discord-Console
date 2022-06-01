@@ -114,16 +114,19 @@ class StatusPing:
 
     def get_status(self):
         """ Get the status response """
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as connection:
-            connection.settimeout(self._timeout)
-            connection.connect((self._host, self._port))
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as connection:
+                connection.settimeout(self._timeout)
+                connection.connect((self._host, self._port))
 
-            # Send handshake + status request
-            self._send_data(connection, b'\x00\x00', self._host, self._port, b'\x01')
-            self._send_data(connection, b'\x00')
+                # Send handshake + status request
+                self._send_data(connection, b'\x00\x00', self._host, self._port, b'\x01')
+                self._send_data(connection, b'\x00')
 
-            # Read response, offset for string length
-            data = self._read_fully(connection, extra_varint=True)
+                # Read response, offset for string length
+                data = self._read_fully(connection, extra_varint=True)
+        except socket.timeout:
+            return None
 
         # Load json and return
         return json.loads(data.decode('utf8'))

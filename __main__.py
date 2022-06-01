@@ -9,12 +9,11 @@ import os
 
 
 class ConsolePrintListener:
-    def __init__(self, manager: ServerManager, logging_directory: str):
+    def __init__(self, manager: ServerManager, log_file: str):
         self._manager: ServerManager = manager
         self._listener: ServerListener = ServerListener(manager.server)
         self._should_shut_down: bool = False
-        self._logfile: str = os.path.join(logging_directory, f"{int(time.time())}.log")
-        os.makedirs(logging_directory, exist_ok=True)
+        self._logfile: str = log_file
 
     def start(self):
         threading.Thread(target=self._print_queue, name="ConsolePrintListener").start()
@@ -41,11 +40,15 @@ if __name__ == "__main__":
     server_dir = configs.get("Server", "directory")
     ip = configs.get("Server", "ip")
 
+    logging_directory = "log"
+    manager_log_file = os.path.join(logging_directory, f"{int(time.time())}.log")
+    os.makedirs(logging_directory, exist_ok=True)
+
     manager = ServerManager(server_dir, config_file)
-    listener = ConsolePrintListener(manager, "log")
+    listener = ConsolePrintListener(manager, manager_log_file)
     listener.start()
 
-    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), ip)
+    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), manager_log_file, ip)
     discord_server.start_client()  # block
 
     listener.stop()

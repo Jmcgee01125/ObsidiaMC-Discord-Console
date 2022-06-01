@@ -13,7 +13,7 @@ if DISCORD_TOKEN == None:
     raise RuntimeError("Could not find DISCORD_TOKEN in .env file. Did you create a bot?")
 
 
-def prep_client(manager: ServerManager, operators_file: str, owners_file: str, ip: str = None):
+def prep_client(manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str, ip: str = None):
     '''Prepare the client with applicable commands'''
     if ip == None or ip == "":
         ip = "Minecraft"
@@ -24,7 +24,7 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, i
     global client
     client = nextcord.Client(intents=INTENTS)
     client.add_cog(PingCog(client))
-    client.add_cog(ServerCog(client, manager, operators_file, owners_file, server_name))
+    client.add_cog(ServerCog(client, manager, operators_file, owners_file, manager_logfile, server_name))
 
     @client.event
     async def on_ready():

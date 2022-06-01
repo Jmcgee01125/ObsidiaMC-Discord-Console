@@ -56,11 +56,13 @@ class ServerCog (commands.Cog):
     query()
     '''
 
-    def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str, server_name: str = "Minecraft Server"):
+    def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str,
+                 manager_logfile: str, server_name: str = "Minecraft Server"):
         self.client: nextcord.Client = client
         self.manager: ServerManager = manager
         self.operators_file: str = operators_file
         self.owners_file: str = owners_file
+        self.manager_logfile: str = manager_logfile
         self._ops: set[int] = set()
         self._owners: set[int] = set()
         self._server_name = server_name
@@ -122,17 +124,20 @@ class ServerCog (commands.Cog):
     async def _sv_log(self, interaction: Interaction):
         if await self._verify_operator_and_reply(interaction):
             return
-
         embed_title = "Server Log"
         log_entries = self.manager.get_latest_log()
+        await self._start_log_view(interaction, log_entries, embed_title)
 
-        def build_log_embed_with_offset(logs: List[str], title: str, index: int) -> Embed:
-            content = ""
-            for i in range(max(0, index), min(index + 10, len(logs))):
-                content += f"{logs[i]}\n"
-            return embedhelper.build_embed(title=title, description=content, color=self._embed_color)
-
-        await self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset, start_index=len(log_entries) - 10)
+    @_server.subcommand(name="managerlog", description="Read the manager log")
+    async def _sv_managerlog(self, interaction: Interaction):
+        if await self._verify_operator_and_reply(interaction):
+            return
+        embed_title = "Manager Log"
+        try:
+            log_entries = open(self.manager_logfile, "r").readlines()
+        except IOError:
+            log_entries = ["No manager log found."]
+        await self._start_log_view(interaction, log_entries, embed_title)
 
     @_server.subcommand(name="backup", description="Make a backup for the server, leave out name to use the timestamp and respect max backups.")
     async def _sv_backup(self, interaction: Interaction,
@@ -280,6 +285,9 @@ class ServerCog (commands.Cog):
         if await self._verify_server_online_and_reply(interaction):
             return
         response: dict = self.pinger.get_status()
+        if response == None:
+            await interaction.send("Request timed out.", ephemeral=True)
+            return
         version = response["version"]["name"]
         players_max = response["players"]["max"]
         players_online = response["players"]["online"]
@@ -301,6 +309,14 @@ class ServerCog (commands.Cog):
         emb = embedhelper.build_embed(
             *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
         await interaction.send(embed=emb, ephemeral=hidden)
+
+    async def _start_log_view(self, interaction: Interaction, log_entries: List[str], embed_title: str):
+        def build_log_embed_with_offset(logs: List[str], title: str, index: int) -> Embed:
+            content = ""
+            for i in range(max(0, index), min(index + 10, len(logs))):
+                content += f"{logs[i]}\n"
+            return embedhelper.build_embed(title=title, description=content, color=self._embed_color)
+        await self._manage_pageable_embed(interaction, log_entries, embed_title, build_log_embed_with_offset, start_index=len(log_entries) - 10)
 
     async def _manage_pageable_embed(self,
                                      interaction: Interaction,
