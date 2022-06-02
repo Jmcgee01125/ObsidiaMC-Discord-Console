@@ -16,6 +16,7 @@ if DISCORD_TOKEN == None:
 
 
 async def _presence_update_loop(pinger: StatusPing, server_name: str):
+    global _stop_presence_updater
     while not _stop_presence_updater:
         response: dict = pinger.get_status()
         if response == None:
@@ -34,7 +35,7 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, m
     elif ip == None or ip == "":  # name, but no ip
         server_name = name
         server_ip = None
-    elif name == None or name == "": #  ip, but no name
+    elif name == None or name == "":  # ip, but no name
         server_name = ip
         server_ip = f"{ip}:{manager._port}"
     else:  # name and ip
