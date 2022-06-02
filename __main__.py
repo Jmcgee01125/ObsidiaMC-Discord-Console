@@ -23,17 +23,25 @@ class ConsolePrintListener:
         while (not self._should_shut_down):
             asyncio.run(asyncio.sleep(0.05))
             if (self._listener.has_next()):
-                entry = self._listener.next()
-                print(entry)
-                with open(self._logfile, "a") as log:
-                    log.writelines(f"{entry}\n")
-        print("Closing server console listener")
+                self._print_and_log_entry(self._listener.next())
+        self._print_and_log_entry("Closing server console listener")
+
+    def _print_and_log_entry(self, entry: str):
+        entry = f"{self._get_timestamp} {entry}"
+        print(entry)
+        with open(self._logfile, "a") as log:
+            log.writelines(entry)
+
+    def _get_timestamp(self):
+        return time.strftime("[%Y-%m-%d at %H:%M:%S]", time.localtime())
 
     def stop(self):
         self._should_shut_down = True
 
 
 if __name__ == "__main__":
+    print("Starting main")
+
     os.chdir(os.path.dirname(__file__))  # HACK, but it works to get the directory relative to this accurately without breaking root dirs
     config_file = os.path.join("config", "obsidia.conf")
     configs = ObsidiaConfigParser(config_file)
@@ -55,4 +63,5 @@ if __name__ == "__main__":
     stop_server_result = manager.stop_server()
     if stop_server_result != None:
         print(stop_server_result)
+
     print("Closing main")
