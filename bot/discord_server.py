@@ -34,9 +34,12 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, m
     elif ip == None or ip == "":  # name, but no ip
         server_name = name
         server_ip = None
-    else:  # ip, but no name
+    elif name == None or name == "": #  ip, but no name
         server_name = ip
         server_ip = f"{ip}:{manager._port}"
+    else:  # name and ip
+        server_name = name
+        server_ip = ip
     pinger: StatusPing = StatusPing(port=manager._port, timeout=2)
 
     global client
@@ -44,12 +47,14 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, m
     client.add_cog(PingCog(client))
     client.add_cog(ServerCog(client, manager, operators_file, owners_file, manager_logfile, pinger, server_name, server_ip))
 
-    global _should_start_presence_updater, _stop_presence_updater
+    global _should_start_presence_updater
+    global _stop_presence_updater
     _should_start_presence_updater = True
     _stop_presence_updater = False
 
     @client.event
     async def on_ready():
+        global _should_start_presence_updater
         print(f"Discord client connected as {client.user}")
         if _should_start_presence_updater:
             _should_start_presence_updater = False

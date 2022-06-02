@@ -125,7 +125,7 @@ class StatusPing:
 
                 # Read response, offset for string length
                 data = self._read_fully(connection, extra_varint=True)
-        except socket.timeout:
+        except:
             return None
 
         # Load json and return
