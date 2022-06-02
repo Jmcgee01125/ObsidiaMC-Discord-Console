@@ -30,7 +30,7 @@ class ConsolePrintListener:
         entry = f"{self._get_timestamp} {entry}"
         print(entry)
         with open(self._logfile, "a") as log:
-            log.writelines(entry)
+            log.writelines(f"{entry}\n")
 
     def _get_timestamp(self):
         return time.strftime("[%Y-%m-%d at %H:%M:%S]", time.localtime())
