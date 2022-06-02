@@ -33,7 +33,7 @@ class ConsolePrintListener:
             log.writelines(f"{entry}\n")
 
     def _get_timestamp(self):
-        return time.strftime("[%Y-%m-%d at %H:%M:%S]", time.localtime())
+        return time.strftime("[%Y-%m-%d]", time.localtime())
 
     def stop(self):
         self._should_shut_down = True
@@ -46,6 +46,7 @@ if __name__ == "__main__":
     config_file = os.path.join("config", "obsidia.conf")
     configs = ObsidiaConfigParser(config_file)
     server_dir = configs.get("Server", "directory")
+    name = configs.get("Server", "name")
     ip = configs.get("Server", "ip")
 
     logging_directory = "log"
@@ -56,9 +57,10 @@ if __name__ == "__main__":
     listener = ConsolePrintListener(manager, manager_log_file)
     listener.start()
 
-    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), manager_log_file, ip)
+    discord_server.prep_client(manager, os.path.join("config", "operators.txt"), os.path.join("config", "owners.txt"), manager_log_file, name, ip)
     discord_server.start_client()  # block
 
+    discord_server.cleanup_client()
     listener.stop()
     stop_server_result = manager.stop_server()
     if stop_server_result != None:

@@ -36,8 +36,14 @@ class ServerCog (commands.Cog):
         The file to read operators from
     owners_file: `str`
         The file to read owners from, owners are given operator status
+    manager_logfile: `str`
+        The file to read when calling /server managerlog
+    pinger: `StatusPing`
+        The object to use when pinging the server
     server_name: `str`
         The server name as it appears in queries
+    server_ip: `str`
+        The server IP as it should appear in query descriptions (e.g. "192.168.1.1:25565"), None to ignore
 
     Commands
     --------
@@ -46,6 +52,8 @@ class ServerCog (commands.Cog):
         say(message: `str`)
         stop()
         start()
+        log()
+        managerlog()
         backup(name: `str`)
         listbackups()
     admin()
@@ -57,16 +65,17 @@ class ServerCog (commands.Cog):
     '''
 
     def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str,
-                 manager_logfile: str, server_name: str = "Minecraft Server"):
+                 manager_logfile: str, pinger: StatusPing, server_name: str = "Minecraft Server", server_ip: str = None):
         self.client: nextcord.Client = client
         self.manager: ServerManager = manager
         self.operators_file: str = operators_file
         self.owners_file: str = owners_file
         self.manager_logfile: str = manager_logfile
+        self.pinger = pinger
         self._ops: set[int] = set()
         self._owners: set[int] = set()
         self._server_name = server_name
-        self.pinger: StatusPing = StatusPing(port=manager._port, timeout=2)
+        self._server_ip = server_ip
         self._embed_color = nextcord.Color.green()
         self._load_admins()
 
@@ -300,14 +309,17 @@ class ServerCog (commands.Cog):
         except KeyError:
             pass
         motd = response["description"]["text"]
+        if self._server_ip != None:
+            motd = f"{self._server_ip}\n{motd}"
+        elif motd == None or motd == "":  # otherwise would crash embed
+            motd = "\n"
         fields = []
         fields.append(EmbedField("Online", players_online, inline=True))
         fields.append(EmbedField("Capacity", players_max, inline=True))
         fields.append(EmbedField("Version", version, inline=True))
         if players_text != "":
             fields.append(EmbedField("Current Players", players_text, inline=False))
-        emb = embedhelper.build_embed(
-            *fields, title=f"{self._server_name}", description=motd, color=self._embed_color)
+        emb = embedhelper.build_embed(*fields, title=self._server_name, description=motd, color=self._embed_color)
         await interaction.send(embed=emb, ephemeral=hidden)
 
     async def _start_log_view(self, interaction: Interaction, log_entries: List[str], embed_title: str):

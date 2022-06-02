@@ -65,11 +65,16 @@ The directory where the server is located.
 This is the directory that contains server.jar.
 Directories from root/C/whatever are recommended, but not required (relative to the location of __main__.py).
 
+name
+The name of the server.
+This is used in the Discord activity ("Playing MyServer | 2/10") and queries ("MyServer" as the title).
+If this is left blank, the ip will be used instead.
+If both are blank, "MC Server" will be used as a default (and no ip will be displayed, same if there is only a name).
+
 ip
 The ip that users will connect to.
-This is only used in the information displayed in the Discord activity ("Playing 192.168.1.1") and queries ("192.168.1.1:25565").
-Note that the port (from server.properties) is always appended in queries, but not the activity (e.g. "Playing MyServer.net" and "MyServer.net:25565").
-If left blank, the name will instead simply be "Minecraft" (activity) and "Minecraft Server" (query) with no other information.
+This is used in the information displayed in queries beneath the name of the server.
+Note that the port is not appended, so non-standard ports should be documented to end users (e.g. ip=192.168.1.1:27015).
 
 
 ----- [operators.txt] -----
