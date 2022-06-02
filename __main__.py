@@ -27,7 +27,7 @@ class ConsolePrintListener:
         self._print_and_log_entry("Closing server console listener")
 
     def _print_and_log_entry(self, entry: str):
-        entry = f"{self._get_timestamp} {entry}"
+        entry = f"{self._get_timestamp()} {entry}"
         print(entry)
         with open(self._logfile, "a") as log:
             log.writelines(f"{entry}\n")
