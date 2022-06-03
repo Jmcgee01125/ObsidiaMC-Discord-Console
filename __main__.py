@@ -16,12 +16,15 @@ class ConsolePrintListener:
         self._logfile: str = log_file
 
     def start(self):
-        threading.Thread(target=self._print_queue, name="ConsolePrintListener").start()
+        threading.Thread(target=self._start_print_queue, name="ConsolePrintListener").start()
 
-    def _print_queue(self):
+    def _start_print_queue(self):
         self._listener.subscribe()
+        asyncio.run(self._print_queue())
+
+    async def _print_queue(self):
         while (not self._should_shut_down):
-            asyncio.run(asyncio.sleep(0.05))
+            await asyncio.sleep(0.05)
             if (self._listener.has_next()):
                 self._print_and_log_entry(self._listener.next())
         self._print_and_log_entry("Closing server console listener")
