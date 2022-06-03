@@ -27,20 +27,27 @@ async def _presence_update_loop(pinger: StatusPing, server_name: str):
         await asyncio.sleep(60)
 
 
+def _is_valid_value(value: str) -> bool:
+    return value != None and value != ""
+
+
 def prep_client(manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str, name: str = None, ip: str = None):
     '''Prepare the client with applicable commands'''
-    if name == None and ip == None:  # neither name nor ip
-        server_name = "MC Server"
-        server_ip = None
-    elif ip == None or ip == "":  # name, but no ip
+    valid_name = _is_valid_value(name)
+    valid_ip = _is_valid_value(ip)
+    if valid_name and valid_ip:  # name and ip
+        server_name = name
+        server_ip = f"{ip}:{manager._port}"
+    elif valid_name:  # name, but no ip
         server_name = name
         server_ip = None
-    elif name == None or name == "":  # ip, but no name
+    elif valid_ip:  # ip, but no name
         server_name = ip
         server_ip = f"{ip}:{manager._port}"
-    else:  # name and ip
-        server_name = name
-        server_ip = ip
+    else:  # neither name nor ip
+        server_name = "MC Server"
+        server_ip = None
+
     pinger: StatusPing = StatusPing(port=manager._port, timeout=2)
 
     global client
@@ -57,6 +64,7 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, m
     async def on_ready():
         global _should_start_presence_updater
         print(f"Discord client connected as {client.user}")
+        # on_ready may be called multiple times, do not spawn multiple loops
         if _should_start_presence_updater:
             _should_start_presence_updater = False
             await _presence_update_loop(pinger, server_name)

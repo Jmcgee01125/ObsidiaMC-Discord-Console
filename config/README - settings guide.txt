@@ -74,7 +74,7 @@ If both are blank, "MC Server" will be used as a default (and no ip will be disp
 ip
 The ip that users will connect to.
 This is used in the information displayed in queries beneath the name of the server.
-Note that the port is not appended, so non-standard ports should be documented to end users (e.g. ip=192.168.1.1:27015).
+Note that the port is appended, but will not be appended when used as the name (if the name is missing).
 
 
 ----- [operators.txt] -----
