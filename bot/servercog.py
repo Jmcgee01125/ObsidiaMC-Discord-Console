@@ -310,7 +310,7 @@ class ServerCog (commands.Cog):
             pass
         motd = response["description"]["text"]
         if self._server_ip != None:
-            motd = f"{self._server_ip}\n{motd}"
+            motd = f"{self._server_ip}\n\n{motd}"
         elif motd == None or motd == "":  # otherwise would crash embed
             motd = "\n"
         fields = []
