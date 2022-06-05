@@ -22,9 +22,13 @@ Owner/operator distinction for command permissions.
 
 Start, stop, and send any Minecraft console commands.
 
-Automatic, user-defined restarts and backups.
+Automatic, user-defined restart and backup intervals.
 
 /query command for any user to check the server status and connected players.
+
+Live player count using Discord activity status.
+
+No server-side modifications necessary - runs by calling the server jarfile.
 
 ---
 
@@ -86,4 +90,3 @@ Automatic, user-defined restarts and backups.
 ![server log](https://user-images.githubusercontent.com/38796431/161887919-c65147a8-2154-4745-afb4-67014929e94e.png)
 
 ![backup list](https://user-images.githubusercontent.com/38796431/161887949-742256f8-a419-49f2-9230-a6b83433b8cc.png)
-
