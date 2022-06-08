@@ -171,6 +171,7 @@ class ServerManager:
             await self._update_server_listeners("Waiting for world backup (server changing state)")
             await asyncio.sleep(3)
         self._doing_backup = True
+        os.makedirs(self.backup_directory, exist_ok=True)
         # turn off autosaving while doing the backup to prevent conflicts
         self.set_saving(False)
         await self._update_server_listeners("Backing up world")
