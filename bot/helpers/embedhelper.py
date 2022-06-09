@@ -66,9 +66,21 @@ def build_embed(*fields: EmbedField, title: str = nextcord.Embed.Empty, url: str
     embed: `nextcord.Embed`
         An embeddable object
     '''
-    embed = nextcord.Embed(title=title, url=url, description=description, color=color)
+    embed = nextcord.Embed(title=escape_ctrl_chars(title), url=url, description=escape_ctrl_chars(description), color=color)
     embed.set_thumbnail(url=thumbnail)
     embed.set_image(url=image)
     for field in fields:
-        embed.add_field(name=field.name, value=field.value, inline=field.inline)
+        embed.add_field(name=escape_ctrl_chars(field.name), value=escape_ctrl_chars(field.value), inline=field.inline)
     return embed
+
+
+def escape_ctrl_chars(text: str) -> str:
+    '''Returns the provided text with any control characters prepended by a backslash'''
+    control_characters = ["*", "_", "~", "`", "|", ">"]
+    escaped_str = ""
+    for c in text:
+        if c in control_characters:
+            escaped_str += f"\\{c}"
+        else:
+            escaped_str += c
+    return escaped_str
