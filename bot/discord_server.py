@@ -22,7 +22,10 @@ async def _presence_update_loop(pinger: StatusPing, server_name: str):
         if response == None:
             status = "offline"
         else:
-            status = f"{response['players']['online']}/{response['players']['max']}"
+            try:
+                status = f"{response['players']['online']}/{response['players']['max']}"
+            except KeyError:
+                status = "?/?"
         await client.change_presence(activity=nextcord.Game(name=f"{server_name} | {status}"))
         await asyncio.sleep(60)
 
