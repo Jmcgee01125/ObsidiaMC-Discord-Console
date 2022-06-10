@@ -351,7 +351,7 @@ class ServerCog (commands.Cog):
         try:
             await interaction.send(embed=embed_builder(items, embed_title, index), view=page_buttons, ephemeral=True)
         except:
-            await interaction.edit_original_message(content="Error getting page.", embed=None, view=page_buttons, ephemeral=True)
+            await interaction.send(content="Error getting page.", view=page_buttons, ephemeral=True)
         while not page_buttons.is_finished():
             await page_buttons.wait()
             if page_buttons.value == ButtonEnums.LEFT:
