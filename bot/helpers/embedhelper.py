@@ -75,7 +75,13 @@ def build_embed(*fields: EmbedField, title: str = nextcord.Embed.Empty, url: str
 
 
 def escape_ctrl_chars(text: str) -> str:
-    '''Returns the provided text with any control characters prepended by a backslash'''
+    '''
+    Returns the provided text with any control characters prepended by a backslash
+
+    If an nextcord.Embed.Empty is passed, returns unchanged
+    '''
+    if text == nextcord.Embed.Empty:
+        return text
     text = str(text)
     control_characters = ["*", "_", "~", "`", "|", ">"]
     escaped_str = ""
