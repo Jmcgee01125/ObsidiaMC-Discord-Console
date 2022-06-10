@@ -297,18 +297,27 @@ class ServerCog (commands.Cog):
         if response == None:
             await interaction.send("Request timed out.", ephemeral=True)
             return
-        version = response["version"]["name"]
-        players_max = response["players"]["max"]
-        players_online = response["players"]["online"]
-        players_text = ""
+        try:
+            version = response["version"]["name"]
+        except:
+            version = "Unknown"
+        try:
+            players_max = response["players"]["max"]
+            players_online = response["players"]["online"]
+        except:
+            players_max = "?"
+            players_online = "?"
         try:
             players_list = response["players"]["sample"]
             for player in players_list:
                 players_text += f"{player['name']}, "
             players_text = players_text[:-2]
-        except KeyError:
-            pass
-        motd = response["description"]["text"]
+        except:
+            players_text = ""
+        try:
+            motd = response["description"]["text"]
+        except:
+            motd = "\n"
         if self._server_ip != None:
             motd = f"{self._server_ip}\n\n{motd}"
         elif motd == None or motd == "":  # otherwise would crash embed
@@ -346,12 +355,18 @@ class ServerCog (commands.Cog):
                 if index > 0:
                     index -= 10
                 page_buttons = PageButtons(timeout=button_timeout)
-                await interaction.edit_original_message(embed=embed_builder(items, embed_title, index), view=page_buttons)
+                try:
+                    await interaction.edit_original_message(content="", embed=embed_builder(items, embed_title, index), view=page_buttons)
+                except:
+                    await interaction.edit_original_message(content="Error getting page.", embed=None, view=page_buttons)
             elif page_buttons.value == ButtonEnums.RIGHT:
                 if index < len(items) - 10:
                     index += 10
                 page_buttons = PageButtons(timeout=button_timeout)
-                await interaction.edit_original_message(embed=embed_builder(items, embed_title, index), view=page_buttons)
+                try:
+                    await interaction.edit_original_message(content="", embed=embed_builder(items, embed_title, index), view=page_buttons)
+                except:
+                    await interaction.edit_original_message(content="Error getting page.", embed=None, view=page_buttons)
         await interaction.edit_original_message(view=None)
 
     async def _verify_operator_and_reply(self, interaction: Interaction):
