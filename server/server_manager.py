@@ -37,7 +37,7 @@ class ServerManager:
         self._save_is_off = False
         self._doing_backup = False
         self._reset_server_startup_vars()
-        self.server = ServerRunner(self.server_directory, jarname=self._server_jar, args=self._args)
+        self.server = ServerRunner(self.server_directory, executable=self._executable, jarname=self._server_jar, args=self._args)
 
     def _reset_server_startup_vars(self):
         '''Initial vars are those that need to be reset every time the server is launched.'''
@@ -311,6 +311,7 @@ class ServerManager:
         # NOTE: the config items could be None or invalid in some cases, but crashing is fine in these circumstances
         try:
             self._server_jar = config.get("Server Information", "server_jar")
+            self._executable = config.get("Server Information", "executable")
             self._args = config.get("Server Information", "args").split(" ")
             self._worlds = config.get("Server Information", "world_folders").split(",")
             for i in range(len(self._worlds)):
@@ -324,8 +325,6 @@ class ServerManager:
             self._max_backups = int(config.get("Backups", "max_backups"))
             self._backup_datetime = config.get("Backups", "backup_datetime")
             self.backup_directory = os.path.join(self.server_directory, config.get("Backups", "backup_folder"))
-
-            config.write()
         except Exception as e:
             raise RuntimeError(f"Error reading configs for server: {e}")
 

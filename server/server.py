@@ -14,6 +14,8 @@ class ServerRunner:
     ----------
     server_directory: `str`
         The path to the directory of this server's jar file
+    executable: `str`
+        The java executable to start the server with, default "java"
     jarname: `str`
         The server jar, default "server.jar"
     args: `list[str]`
@@ -28,9 +30,10 @@ class ServerRunner:
         The name of the server being run (note that this is not necessarily read from the config file)
     '''
 
-    def __init__(self, server_directory: str, jarname: str = "server.jar", args: List[str] = []):
+    def __init__(self, server_directory: str, executable: str = "java", jarname: str = "server.jar", args: List[str] = []):
         self._is_ready = False
         self.server_directory = os.path.abspath(server_directory)
+        self._executable = executable
         self._jarname = jarname
         self._args = args
         self._server = None
@@ -43,7 +46,7 @@ class ServerRunner:
     async def start(self):
         '''Start the server process if not already started.'''
         if (self._server == None or not self.is_active()):
-            self._server = subprocess.Popen(f"java {' '.join(self._args)} -jar {self._jarname} -nogui",
+            self._server = subprocess.Popen(f"{self._executable} {' '.join(self._args)} -jar {self._jarname} -nogui",
                                             stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True, cwd=self.server_directory)
             threading.Thread(target=self._start_async_log_listener, name="ServerLogListener", daemon=True).start()
 

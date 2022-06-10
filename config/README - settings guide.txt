@@ -4,6 +4,7 @@
 server_jar
 The name of the server jar, such as server.jar (a vanilla jar).
 Some versions, like fabric, may use alternates.
+See below for the startup command order.
 
 world_folders
 A list of world folders to back up, comma separated.
@@ -12,9 +13,17 @@ For example, both of the following are valid:
     world_folders=world, world_nether, world_the_end
 These worlds should be in the same directory as server.jar, and are subject to backup/restore operations.
 
+executable
+The executable to start the server with.
+"java" is the recommended default, but can be customized to use a specific source.
+See below for the startup command order.
+
 args
 Server startup arguments, like setting the amount of RAM.
-These arguments are parsed as "java <args> -jar <server_jar> -nogui"
+See below for the startup command order.
+
+
+The server's startup options are parsed as "<executable> <args> -jar <server_jar> -nogui"
 
 
 ----- [Restarts] -----
