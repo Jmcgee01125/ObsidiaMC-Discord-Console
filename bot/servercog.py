@@ -297,9 +297,9 @@ class ServerCog (commands.Cog):
         if response == None:
             await interaction.send("Request timed out.", ephemeral=True)
             return
-        version = self._read_dict_with_default(response, *["version", "name"], "Unknown")
-        players_max = self._read_dict_with_default(response, *["players", "max"], "?")
-        players_online = self._read_dict_with_default(response, *["players", "online"], "?")
+        version = self._read_dict_with_default(response, *["version", "name"], default_value="Unknown")
+        players_max = self._read_dict_with_default(response, *["players", "max"], default_value="?")
+        players_online = self._read_dict_with_default(response, *["players", "online"], default_value="?")
         players_text = ""
         try:
             players_list = response["players"]["sample"]
@@ -308,9 +308,9 @@ class ServerCog (commands.Cog):
             players_text = players_text[:-2]
         except KeyError:
             pass
-        motd = self._read_dict_with_default(response, *["description", "text"], "\n")
+        motd = self._read_dict_with_default(response, *["description", "text"], default_value="\n")
         if self._server_ip != None:
-            motd = f"{self._server_ip}\n{motd}"
+            motd = f"{self._server_ip}\n\n{motd}"
         elif motd == None or motd == "":  # otherwise would crash embed, and not guaranteed default
             motd = "\n"
         fields = []
@@ -326,7 +326,7 @@ class ServerCog (commands.Cog):
         try:
             value = dict
             for key in keys:
-                value = dict[key]
+                value = value[key]
             return value
         except KeyError:
             if default_value == None:
