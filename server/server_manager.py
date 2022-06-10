@@ -291,7 +291,10 @@ class ServerManager:
         try:
             config = MCPropertiesParser(os.path.join(self.server_directory, "server.properties"))
             self._motd = config.get("motd").strip()
-            self._port = int(config.get("query.port"))
+            try:
+                self._port = int(config.get("query.port"))
+            except TypeError:  # in case the version doesn't have a query port, such as FTB 1.7.10
+                self._port = int(config.get("server-port"))
         except FileNotFoundError:
             raise FileNotFoundError("You must run your servers before using the server manager.")
 
