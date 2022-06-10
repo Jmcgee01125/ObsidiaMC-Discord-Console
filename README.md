@@ -1,6 +1,6 @@
-# ObsidiaMC Web Console
+# ObsidiaMC Discord Console
 
-Python and Nextcord-based Minecraft console using Discord to issue commands. 
+Cross-platform Python and Nextcord-based Minecraft console using Discord to issue commands. 
 
 ---
 
