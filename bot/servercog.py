@@ -14,7 +14,7 @@ from bot.helpers.embedhelper import EmbedField
 import bot.helpers.embedhelper as embedhelper
 from server.server_ping import StatusPing
 from nextcord.ext import commands
-from typing import Callable, List
+from typing import Callable, Dict, List
 from datetime import datetime
 import threading
 import nextcord
@@ -297,30 +297,21 @@ class ServerCog (commands.Cog):
         if response == None:
             await interaction.send("Request timed out.", ephemeral=True)
             return
-        try:
-            version = response["version"]["name"]
-        except:
-            version = "Unknown"
-        try:
-            players_max = response["players"]["max"]
-            players_online = response["players"]["online"]
-        except:
-            players_max = "?"
-            players_online = "?"
+        version = self._read_dict_with_default(response, *["version", "name"], "Unknown")
+        players_max = self._read_dict_with_default(response, *["players", "max"], "?")
+        players_online = self._read_dict_with_default(response, *["players", "online"], "?")
+        players_text = ""
         try:
             players_list = response["players"]["sample"]
             for player in players_list:
                 players_text += f"{player['name']}, "
             players_text = players_text[:-2]
-        except:
-            players_text = ""
-        try:
-            motd = response["description"]["text"]
-        except:
-            motd = "\n"
+        except KeyError:
+            pass
+        motd = self._read_dict_with_default(response, *["description", "text"], "\n")
         if self._server_ip != None:
-            motd = f"{self._server_ip}\n\n{motd}"
-        elif motd == None or motd == "":  # otherwise would crash embed
+            motd = f"{self._server_ip}\n{motd}"
+        elif motd == None or motd == "":  # otherwise would crash embed, and not guaranteed default
             motd = "\n"
         fields = []
         fields.append(EmbedField("Online", players_online, inline=True))
@@ -330,6 +321,18 @@ class ServerCog (commands.Cog):
             fields.append(EmbedField("Current Players", players_text, inline=False))
         emb = embedhelper.build_embed(*fields, title=self._server_name, description=motd, color=self._embed_color)
         await interaction.send(embed=emb, ephemeral=hidden)
+
+    def _read_dict_with_default(self, dict: Dict[str, str], *keys: str, default_value: str = None) -> str:
+        try:
+            value = dict
+            for key in keys:
+                value = dict[key]
+            return value
+        except KeyError:
+            if default_value == None:
+                raise RuntimeError("Could not find key in dict and no default value provided.")
+            else:
+                return default_value
 
     async def _start_log_view(self, interaction: Interaction, log_entries: List[str], embed_title: str):
         def build_log_embed_with_offset(logs: List[str], title: str, index: int) -> Embed:
