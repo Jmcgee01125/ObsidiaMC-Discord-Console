@@ -68,7 +68,7 @@ No server-side modifications necessary - runs by calling the server jarfile.
 
             2) "Send Messages" and "Use Slash Commands" bot permissions.
 
-4) Add your Discord user ID to owners.txt, and any operators to operators.txt.
+4) Add your Discord user ID to owners.txt, and any operators to operators.txt (in the config folder).
 
     1) See the readme in the config folder for information about how to enter this info.
 
