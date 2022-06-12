@@ -42,6 +42,8 @@ restart_on_crash
 Automatically restart the server when it goes down.
 You MUST send a stop command via Discord to fully shut down a server.
 (Stop commands sent in-game will be interpreted as crashes if this is enabled).
+Note that in some cases your server may enter an unrecoverable boot loop, as it cannot be stopped via the console during startup/shutdown.
+    (If that happens, you must connect to the device running the server and shut down this program directly).
 
 
 ----- [Backups] -----
