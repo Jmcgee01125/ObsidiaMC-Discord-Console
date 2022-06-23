@@ -7,8 +7,6 @@ ButtonEnums
     Enumerated type for reading button press values
 PageButtons
     Left, right, and close buttons
-CloseButton
-    Single close button
 ConfirmButtons
     Accept and deny buttons
 '''
