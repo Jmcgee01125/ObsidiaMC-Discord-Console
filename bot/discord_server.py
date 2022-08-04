@@ -15,8 +15,12 @@ if DISCORD_TOKEN == None:
     raise RuntimeError("Could not find DISCORD_TOKEN in .env file. Did you create a bot?")
 
 
-async def _presence_update_loop(pinger: StatusPing, server_name: str):
+async def _presence_update_loop(pinger: StatusPing, server_name: str, manager: ServerManager):
     global _stop_presence_updater
+    # wait until the server starts to do the first ping
+    while not _stop_presence_updater and not manager.server_active():
+        await asyncio.sleep(5)
+    # ping every 60 seconds to update the status
     while not _stop_presence_updater:
         response: dict = pinger.get_status()
         if response == None:
@@ -70,7 +74,7 @@ def prep_client(manager: ServerManager, operators_file: str, owners_file: str, m
         # on_ready may be called multiple times, do not spawn multiple loops
         if _should_start_presence_updater:
             _should_start_presence_updater = False
-            await _presence_update_loop(pinger, server_name)
+            await _presence_update_loop(pinger, server_name, manager)
 
 
 def start_client():
