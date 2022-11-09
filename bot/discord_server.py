@@ -1,6 +1,7 @@
 from server.server_manager import ServerManager
 from server.server_ping import StatusPing
 from bot.servercog import ServerCog
+from json import JSONDecodeError
 from bot.pingcog import PingCog
 from dotenv import load_dotenv
 from typing import Union
@@ -23,7 +24,10 @@ async def _presence_update_loop(pinger: StatusPing, server_name: Union[str, None
         await asyncio.sleep(5)
     # ping every 60 seconds to update the status
     while not _stop_presence_updater:
-        response = pinger.get_status()
+        try:
+            response = pinger.get_status()
+        except JSONDecodeError:
+            response = None  # possible to attempt ping during startup, would kill updater permanently
         if response == None:
             status = "offline"
         else:
