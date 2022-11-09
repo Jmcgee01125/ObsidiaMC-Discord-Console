@@ -3,6 +3,7 @@ from server.server_ping import StatusPing
 from bot.servercog import ServerCog
 from bot.pingcog import PingCog
 from dotenv import load_dotenv
+from typing import Union
 import nextcord
 import asyncio
 import os
@@ -15,14 +16,14 @@ if DISCORD_TOKEN == None:
     raise RuntimeError("Could not find DISCORD_TOKEN in .env file. Did you create a bot?")
 
 
-async def _presence_update_loop(pinger: StatusPing, server_name: str, manager: ServerManager):
+async def _presence_update_loop(pinger: StatusPing, server_name: Union[str, None], manager: ServerManager):
     global _stop_presence_updater
     # wait until the server starts to do the first ping
     while not _stop_presence_updater and not manager.server_active():
         await asyncio.sleep(5)
     # ping every 60 seconds to update the status
     while not _stop_presence_updater:
-        response: dict = pinger.get_status()
+        response = pinger.get_status()
         if response == None:
             status = "offline"
         else:
@@ -34,11 +35,12 @@ async def _presence_update_loop(pinger: StatusPing, server_name: str, manager: S
         await asyncio.sleep(60)
 
 
-def _is_valid_value(value: str) -> bool:
+def _is_valid_value(value: Union[str, None]) -> bool:
     return value != None and value != ""
 
 
-def prep_client(manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str, name: str = None, ip: str = None):
+def prep_client(
+        manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str, name: Union[str, None] = None, ip: Union[str, None] = None):
     '''Prepare the client with applicable commands'''
     valid_name = _is_valid_value(name)
     valid_ip = _is_valid_value(ip)

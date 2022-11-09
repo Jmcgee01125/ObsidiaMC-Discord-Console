@@ -1,7 +1,7 @@
 from config.configs import MCPropertiesParser, ObsidiaConfigParser
 from server.server import ServerRunner
+from typing import Union, List
 from datetime import datetime
-from typing import List
 import asyncio
 import shutil
 import time
@@ -37,7 +37,7 @@ class ServerManager:
         self._save_is_off = False
         self._doing_backup = False
         self._reset_server_startup_vars()
-        self.server = ServerRunner(self.server_directory, executable=self._executable, jarname=self._server_jar, args=self._args)
+        self.server = ServerRunner(self.server_directory, executable=self._executable, jarname=self._server_jar, args=self._args)  # type: ignore
 
     def _reset_server_startup_vars(self):
         '''Initial vars are those that need to be reset every time the server is launched.'''
@@ -139,8 +139,10 @@ class ServerManager:
     def _get_current_time(self) -> int:
         return int(time.time())
 
-    def _get_offset_until(self, timestamp: str) -> int:
+    def _get_offset_until(self, timestamp: Union[str, None]) -> int:
         '''Parse SMTWRFD HHMM timestamp and check how far away it is from now, in seconds.'''
+        if timestamp == None:
+            return -1
         offset = 0
         current_time = datetime.now()
         timestamp_parts = timestamp.split(" ")
@@ -159,7 +161,7 @@ class ServerManager:
                 break
         return offset
 
-    async def backup_world(self, backup_name: str = None):
+    async def backup_world(self, backup_name: Union[str, None] = None):
         '''
         Creates a backup of the world in the backup directory.
 
@@ -213,7 +215,7 @@ class ServerManager:
         self._doing_backup = False
         await self._update_server_listeners("Backup completed")
 
-    def list_backups(self) -> List[str]:
+    def list_backups(self) -> Union[str, List[str]]:
         '''Returns a list of world backups.'''
         try:
             return os.listdir(self.backup_directory)
@@ -290,11 +292,13 @@ class ServerManager:
     def _load_server_information(self):
         try:
             config = MCPropertiesParser(os.path.join(self.server_directory, "server.properties"))
-            self._motd = config.get("motd").strip()
+            self._motd = config.get("motd")
+            if self._motd != None:
+                self._motd = self._motd.strip()
             try:
-                self._port = int(config.get("query.port"))
+                self._port = int(config.get("query.port"))  # type: ignore
             except TypeError:  # in case the version doesn't have a query port, such as FTB 1.7.10
-                self._port = int(config.get("server-port"))
+                self._port = int(config.get("server-port"))  # type: ignore - further error -> crash
         except FileNotFoundError:
             raise FileNotFoundError("You must run your servers before using the server manager.")
 
@@ -312,19 +316,19 @@ class ServerManager:
         try:
             self._server_jar = config.get("Server Information", "server_jar")
             self._executable = config.get("Server Information", "executable")
-            self._args = config.get("Server Information", "args").split(" ")
-            self._worlds = config.get("Server Information", "world_folders").split(",")
+            self._args = config.get("Server Information", "args").split(" ")  # type: ignore
+            self._worlds = config.get("Server Information", "world_folders").split(",")  # type: ignore
             for i in range(len(self._worlds)):
                 self._worlds[i] = self._worlds[i].strip()
 
-            self._do_autorestart = config.get("Restarts", "autorestart").lower() == "true"
+            self._do_autorestart = config.get("Restarts", "autorestart").lower() == "true"  # type: ignore
             self._autorestart_datetime = config.get("Restarts", "autorestart_datetime")
-            self._restart_on_crash = config.get("Restarts", "restart_on_crash").lower() == "true"
+            self._restart_on_crash = config.get("Restarts", "restart_on_crash").lower() == "true"  # type: ignore
 
-            self._do_backups = config.get("Backups", "backup").lower() == "true"
-            self._max_backups = int(config.get("Backups", "max_backups"))
+            self._do_backups = config.get("Backups", "backup").lower() == "true"  # type: ignore
+            self._max_backups = int(config.get("Backups", "max_backups"))  # type: ignore
             self._backup_datetime = config.get("Backups", "backup_datetime")
-            self.backup_directory = os.path.join(self.server_directory, config.get("Backups", "backup_folder"))
+            self.backup_directory = os.path.join(self.server_directory, config.get("Backups", "backup_folder"))  # type: ignore
         except Exception as e:
             raise RuntimeError(f"Error reading configs for server: {e}")
 

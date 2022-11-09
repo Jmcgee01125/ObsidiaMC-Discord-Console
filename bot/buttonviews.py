@@ -13,6 +13,7 @@ ConfirmButtons
 
 
 import bot.helpers.symbols as symbols
+from typing import Union
 from enum import Enum
 import nextcord
 
@@ -50,8 +51,8 @@ class PageButtons(nextcord.ui.View):
 
     def __init__(self, timeout: int = 180):
         super().__init__(timeout=timeout)
-        self.value: ButtonEnums = None
-        self.user: nextcord.Member = None
+        self.value: Union[ButtonEnums, None] = None
+        self.user: Union[nextcord.User, nextcord.Member, None] = None
 
     @nextcord.ui.button(label=symbols.LEFT_ARROW, style=nextcord.ButtonStyle.gray)
     async def left(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
@@ -79,8 +80,8 @@ class ConfirmButtons(nextcord.ui.View):
 
     def __init__(self, timeout: int = 180):
         super().__init__(timeout=timeout)
-        self.value: ButtonEnums = None
-        self.user: nextcord.Member = None
+        self.value: Union[ButtonEnums, None] = None
+        self.user: Union[nextcord.User, nextcord.Member, None] = None
 
     @nextcord.ui.button(label=symbols.CHECK_SIGN, style=nextcord.ButtonStyle.green)
     async def accept(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):

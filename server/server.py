@@ -1,4 +1,4 @@
-from typing import List
+from typing import Union, List
 import subprocess
 import threading
 import asyncio
@@ -61,7 +61,7 @@ class ServerRunner:
         '''
         while (self.is_active()):
             try:
-                line = self._server.stdout.readline().decode().strip()  # blocks until data exists
+                line = self._server.stdout.readline().decode().strip()  # type: ignore - also blocks until data exists
             except ValueError:  # info->buf could be NUL
                 pass
             else:
@@ -118,8 +118,8 @@ class ServerRunner:
     def write(self, command: str):
         '''Write a single line command to the server console. Newline automatically appended.'''
         try:
-            self._server.stdin.write(bytes(f"{command}\n", "utf-8"))
-            self._server.stdin.flush()
+            self._server.stdin.write(bytes(f"{command}\n", "utf-8"))  # type: ignore
+            self._server.stdin.flush()  # type: ignore
         except Exception as e:
             return f"Write failed: {e}"
 
@@ -130,8 +130,8 @@ class ServerRunner:
         Note that is_restarting only changes the message that users see, and does not actually restart.
         '''
         try:
-            self._server.stdin.flush()
-            self._server.communicate(b"stop\n", timeout=5)
+            self._server.stdin.flush()  # type: ignore
+            self._server.communicate(b"stop\n", timeout=5)  # type: ignore
         except Exception as e:
             return f"Stop command failed: {e} \n\t(Server may already be offline.)"
         finally:
@@ -139,7 +139,8 @@ class ServerRunner:
 
     def kill(self):
         '''Kills the server process. DO NOT RUN THIS UNLESS YOU ABSOLUTELY HAVE TO.'''
-        self._server.kill()
+        if self._server != None:
+            self._server.kill()
         self._is_ready = False
 
 
@@ -169,7 +170,7 @@ class ServerListener:
     def update(self, message: str):
         self._message_queue.put(message)
 
-    def next(self) -> str:
+    def next(self) -> Union[str, None]:
         '''Returns the first message in the queue, or None if empty.'''
         if (self._message_queue.empty()):
             return None

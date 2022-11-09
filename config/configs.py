@@ -82,7 +82,7 @@ class MCPropertiesParser:
     def __init__(self, properties_file: str):
         self._file = os.path.abspath(properties_file)
 
-    def get(self, option: str) -> str:
+    def get(self, option: str) -> Union[str, None]:
         '''Read a specified option from the properties file'''
         for line in open(self._file, "r"):
             if line[:len(option)] == option:

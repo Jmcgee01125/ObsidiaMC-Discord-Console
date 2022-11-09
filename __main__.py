@@ -2,6 +2,7 @@ from server.server_manager import ServerManager
 from config.configs import ObsidiaConfigParser
 import bot.discord_server as discord_server
 from server.server import ServerListener
+from typing import Union
 import threading
 import asyncio
 import time
@@ -29,7 +30,7 @@ class ConsolePrintListener:
                 self._print_and_log_entry(self._listener.next())
         self._print_and_log_entry("Closing server console listener")
 
-    def _print_and_log_entry(self, entry: str):
+    def _print_and_log_entry(self, entry: Union[str, None]):
         entry = f"{self._get_timestamp()} {entry}"
         print(entry)
         with open(self._logfile, "a") as log:
@@ -56,6 +57,9 @@ if __name__ == "__main__":
     manager_log_file = os.path.join(logging_directory, f"{int(time.time())}.log")
     os.makedirs(logging_directory, exist_ok=True)
 
+    if server_dir == None:
+        print("Server directory not provided")
+        exit(1)
     manager = ServerManager(server_dir, config_file)
     listener = ConsolePrintListener(manager, manager_log_file)
     listener.start()

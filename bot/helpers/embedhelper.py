@@ -13,7 +13,6 @@ EmbedField
     A field for embedding
 '''
 
-
 from typing import Union
 import nextcord
 
@@ -35,12 +34,16 @@ class EmbedField:
     def __init__(self, name: str, value: str, inline: bool = False):
         self.name: str = name
         self.value: str = value
-        self.inline: str = inline
+        self.inline: bool = inline
 
 
-def build_embed(*fields: EmbedField, title: str = nextcord.Embed.Empty, url: str = nextcord.Embed.Empty,
-                description: str = nextcord.Embed.Empty, thumbnail: str = nextcord.Embed.Empty,
-                image: str = nextcord.Embed.Empty, color: Union[int, nextcord.Color] = nextcord.Embed.Empty) -> nextcord.Embed:
+def build_embed(
+        *fields: EmbedField, title: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
+        url: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
+        description: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
+        thumbnail: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
+        image: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
+        color: Union[nextcord.embeds._EmptyEmbed, int, nextcord.Color] = nextcord.Embed.Empty) -> nextcord.Embed:
     '''
     Builds an embeddable object and returns it
 
@@ -74,13 +77,13 @@ def build_embed(*fields: EmbedField, title: str = nextcord.Embed.Empty, url: str
     return embed
 
 
-def escape_ctrl_chars(text: str) -> str:
+def escape_ctrl_chars(text: Union[nextcord.embeds._EmptyEmbed, str, None]) -> Union[nextcord.embeds._EmptyEmbed, str, None]:
     '''
     Returns the provided text with any control characters prepended by a backslash
 
-    If an nextcord.Embed.Empty is passed, returns unchanged
+    If an nextcord.Embed.Empty or None is passed, returns unchanged
     '''
-    if text == nextcord.Embed.Empty:
+    if text == None or text == nextcord.Embed.Empty:
         return text
     text = str(text)
     control_characters = ["*", "_", "~", "`", "|", ">"]

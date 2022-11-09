@@ -11,10 +11,10 @@ from bot.buttonviews import ButtonEnums, ConfirmButtons, PageButtons
 from nextcord import Interaction, SlashOption, Embed
 from server.server_manager import ServerManager
 from bot.helpers.embedhelper import EmbedField
+from typing import Callable, Union, Dict, List
 import bot.helpers.embedhelper as embedhelper
 from server.server_ping import StatusPing
 from nextcord.ext import commands
-from typing import Callable, Dict, List
 from datetime import datetime
 import threading
 import nextcord
@@ -65,7 +65,7 @@ class ServerCog (commands.Cog):
     '''
 
     def __init__(self, client: nextcord.Client, manager: ServerManager, operators_file: str, owners_file: str,
-                 manager_logfile: str, pinger: StatusPing, server_name: str = "Minecraft Server", server_ip: str = None):
+                 manager_logfile: str, pinger: StatusPing, server_name: Union[str, None] = "Minecraft Server", server_ip: Union[str, None] = None):
         self.client: nextcord.Client = client
         self.manager: ServerManager = manager
         self.operators_file: str = operators_file
@@ -161,10 +161,8 @@ class ServerCog (commands.Cog):
             await interaction.send(special_result)
         else:
             await interaction.send("Server backed up.")
-            try:
-                await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")
-            except AttributeError:
-                pass  # potential issue when dming the bot
+            if interaction.user != None and type(interaction.channel) == nextcord.channel.TextChannel:
+                await interaction.channel.send(f"Server backed up by {interaction.user.mention}.")  # type: ignore
 
     @_server.subcommand(name="listbackups", description="Get a list of available backups")
     async def _sv_listbackups(self, interaction: Interaction):
@@ -225,7 +223,8 @@ class ServerCog (commands.Cog):
                         await interaction.edit_original_message(content="Specified backup does not exist.", view=None)
                     else:
                         await interaction.edit_original_message(content=f"Backup {name} restored.", view=None)
-                        await interaction.channel.send(f"Backup {name} restored by {interaction.user.mention}.")
+                        if interaction.user != None and type(interaction.channel) == nextcord.channel.TextChannel:
+                            await interaction.channel.send(f"Backup {name} restored by {interaction.user.mention}.")  # type: ignore
             elif buttons.user != None:
                 buttons = ConfirmButtons(timeout=button_timeout)
                 await interaction.edit_original_message(view=buttons)
@@ -293,7 +292,7 @@ class ServerCog (commands.Cog):
                      hidden: bool = SlashOption(default=True, required=False, name="hidden", description="Make false to let everyone see this query")):
         if await self._verify_server_online_and_reply(interaction):
             return
-        response: dict = self.pinger.get_status()
+        response = self.pinger.get_status()
         if response == None:
             await interaction.send("Request timed out.", ephemeral=True)
             return
@@ -322,12 +321,13 @@ class ServerCog (commands.Cog):
         emb = embedhelper.build_embed(*fields, title=self._server_name, description=motd, color=self._embed_color)
         await interaction.send(embed=emb, ephemeral=hidden)
 
-    def _read_dict_with_default(self, dict: Dict[str, str], *keys: str, default_value: str = None) -> str:
+    def _read_dict_with_default(self, dict: Dict[str, str], *keys: str, default_value: Union[str, None] = None) -> str:
         try:
+            # HACK this is a really stupid way of iterating a dict
             value = dict
             for key in keys:
-                value = value[key]
-            return value
+                value = value[key]  # type: ignore
+            return value  # type: ignore
         except KeyError:
             if default_value == None:
                 raise RuntimeError("Could not find key in dict and no default value provided.")
@@ -377,14 +377,14 @@ class ServerCog (commands.Cog):
 
     async def _verify_operator_and_reply(self, interaction: Interaction):
         '''Return true if the user is NOT allowed to run operator commands, replying to the interaction if so.'''
-        if interaction.user.id not in self._ops:
+        if interaction.user != None and interaction.user.id not in self._ops:
             await interaction.send(f"You are not authorized to do that.", ephemeral=True)
             return True
         return False
 
     async def _verify_owner_and_reply(self, interaction: Interaction):
         '''Return true if the user is NOT allowed to run owner commands, replying to the interaction if so.'''
-        if interaction.user.id not in self._owners:
+        if interaction.user != None and interaction.user.id not in self._owners:
             await interaction.send(f"You are not authorized to do that.", ephemeral=True)
             return True
         return False
