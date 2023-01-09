@@ -35,7 +35,10 @@ async def _presence_update_loop(pinger: StatusPing, server_name: Union[str, None
                 status = f"{response['players']['online']}/{response['players']['max']}"
             except KeyError:
                 status = "?/?"
-        await client.change_presence(activity=nextcord.Game(name=f"{server_name} | {status}"))
+        try:
+            await client.change_presence(activity=nextcord.Game(name=f"{server_name} | {status}"))
+        except:
+            pass
         await asyncio.sleep(60)
 
 
