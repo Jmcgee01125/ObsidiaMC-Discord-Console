@@ -86,12 +86,12 @@ class ServerRunner:
         '''
         Subscribe the given object to be notified on this thread whenever there is a new message in the server console.
 
-        The subscriber must contain the function "update(message: `str`)", otherwise throws AttributeError when adding listener.
+        The subscriber must contain the function "update(self, message: `str`)", otherwise throws AttributeError when adding listener.
         '''
         try:
             listener_object.update(f"Subscribed to server logs.")
-        except AttributeError:
-            raise AttributeError("Listener does not contain update(message: str) attribute.")
+        except (AttributeError, TypeError):
+            raise AttributeError("Listener does not contain update(self, message: str) attribute.")
         else:
             self._listeners.add(listener_object)
 
@@ -104,8 +104,8 @@ class ServerRunner:
         else:
             try:
                 listener_object.update(f"Unsubscribed from server logs.")
-            except AttributeError:
-                raise AttributeError("Listener does not contain update(message: str) attribute.")
+            except (AttributeError, TypeError):
+                raise AttributeError("Listener does not contain update(self, message: str) attribute.")
 
     def is_active(self) -> bool:
         '''Check if the server's thread is currently active (not necessarily that the server is running).'''
@@ -142,45 +142,3 @@ class ServerRunner:
         if self._server != None:
             self._server.kill()
         self._is_ready = False
-
-
-class ServerListener:
-    '''
-    Listens to a given server and creates a queue that can be queried for messages.
-    Does NOT automatically subscribe to the server passed as parameter, call .subscribe()
-
-    Parameters
-    ----------
-    server: `ServerRunner`
-        The server to listen to
-    '''
-
-    def __init__(self, server: ServerRunner):
-        self._server = server
-        self._message_queue = queue.Queue()
-
-    def subscribe(self):
-        '''Subscribes this listener to the server passed in __init__.'''
-        self._server.add_listener(self)
-
-    def unsubscribe(self):
-        '''Unsubscribes from the server's listener pool.'''
-        self._server.remove_listener(self)
-
-    def update(self, message: str):
-        self._message_queue.put(message)
-
-    def next(self) -> Union[str, None]:
-        '''Returns the first message in the queue, or None if empty.'''
-        if (self._message_queue.empty()):
-            return None
-        else:
-            # it's possible to pass an empty check but not have an item, this causes a block until an item is added (hence timeout w/ try)
-            try:
-                return self._message_queue.get(timeout=1)
-            except queue.Empty:
-                return None
-
-    def has_next(self) -> bool:
-        '''Returns true if there is a message in queue, false otherwise.'''
-        return not self._message_queue.empty()

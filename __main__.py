@@ -1,7 +1,6 @@
 from server.server_manager import ServerManager
 from config.configs import ObsidiaConfigParser
 import bot.discord_server as discord_server
-from server.server import ServerListener
 from typing import Union
 import threading
 import asyncio
@@ -12,23 +11,13 @@ import os
 class ConsolePrintListener:
     def __init__(self, manager: ServerManager, log_file: str):
         self._manager: ServerManager = manager
-        self._listener: ServerListener = ServerListener(manager.server)
-        self._should_shut_down: bool = False
         self._logfile: str = log_file
 
     def start(self):
-        threading.Thread(target=self._start_print_queue, name="ConsolePrintListener").start()
+        self._manager.server.add_listener(self)
 
-    def _start_print_queue(self):
-        self._listener.subscribe()
-        asyncio.run(self._print_queue())
-
-    async def _print_queue(self):
-        while (not self._should_shut_down):
-            await asyncio.sleep(0.05)
-            if (self._listener.has_next()):
-                self._print_and_log_entry(self._listener.next())
-        self._print_and_log_entry("Closing server console listener")
+    def update(self, message: str):
+        self._print_and_log_entry(message)
 
     def _print_and_log_entry(self, entry: Union[str, None]):
         entry = f"{self._get_timestamp()} {entry}"
@@ -38,9 +27,6 @@ class ConsolePrintListener:
 
     def _get_timestamp(self):
         return time.strftime("[%Y-%m-%d]", time.localtime())
-
-    def stop(self):
-        self._should_shut_down = True
 
 
 if __name__ == "__main__":
@@ -68,7 +54,6 @@ if __name__ == "__main__":
     discord_server.start_client()  # block
 
     discord_server.cleanup_client()
-    listener.stop()
     stop_server_result = manager.stop_server()
     if stop_server_result != None:
         print(stop_server_result)
