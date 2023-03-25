@@ -38,12 +38,12 @@ class EmbedField:
 
 
 def build_embed(
-        *fields: EmbedField, title: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
-        url: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
-        description: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
-        thumbnail: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
-        image: Union[nextcord.embeds._EmptyEmbed, str, None] = nextcord.Embed.Empty,
-        color: Union[nextcord.embeds._EmptyEmbed, int, nextcord.Color] = nextcord.Embed.Empty) -> nextcord.Embed:
+        *fields: EmbedField, title: Union[str, None] = None,
+        url: Union[str, None] = None,
+        description: Union[str, None] = None,
+        thumbnail: Union[str, None] = None,
+        image: Union[str, None] = None,
+        color: Union[int, nextcord.Color, None] = None) -> nextcord.Embed:
     '''
     Builds an embeddable object and returns it
 
@@ -77,13 +77,13 @@ def build_embed(
     return embed
 
 
-def escape_ctrl_chars(text: Union[nextcord.embeds._EmptyEmbed, str, None]) -> Union[nextcord.embeds._EmptyEmbed, str, None]:
+def escape_ctrl_chars(text: Union[str, None]) -> Union[str, None]:
     '''
     Returns the provided text with any control characters prepended by a backslash
 
     If an nextcord.Embed.Empty or None is passed, returns unchanged
     '''
-    if text == None or text == nextcord.Embed.Empty:
+    if text == None:
         return text
     text = str(text)
     control_characters = ["*", "_", "~", "`", "|", ">"]
