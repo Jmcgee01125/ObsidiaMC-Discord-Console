@@ -4,6 +4,7 @@ from bot.servercog import ServerCog
 from json import JSONDecodeError
 from bot.pingcog import PingCog
 from dotenv import load_dotenv
+from loguru import logger
 from typing import Union
 import nextcord
 import asyncio
@@ -47,7 +48,8 @@ def _is_valid_value(value: Union[str, None]) -> bool:
 
 
 def prep_client(
-        manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str, name: Union[str, None] = None, ip: Union[str, None] = None):
+        manager: ServerManager, operators_file: str, owners_file: str, manager_logfile: str,
+        name: Union[str, None] = None, ip: Union[str, None] = None):
     '''Prepare the client with applicable commands'''
     valid_name = _is_valid_value(name)
     valid_ip = _is_valid_value(ip)
@@ -79,7 +81,7 @@ def prep_client(
     @client.event
     async def on_ready():
         global _should_start_presence_updater
-        print(f"Discord client connected as {client.user}")
+        logger.info(f"Discord client connected as {client.user}")
         # on_ready may be called multiple times, do not spawn multiple loops
         if _should_start_presence_updater:
             _should_start_presence_updater = False
@@ -94,13 +96,13 @@ def start_client():
 
     Send KeyboardInterrupt to call client.close() and return control.
     '''
-    print("Starting Discord client. Don't forget to run /server start to boot your server.")
+    logger.info("Starting Discord client. Don't forget to run /server start to boot your server.")
     c_run = asyncio.ensure_future(client.start(DISCORD_TOKEN))
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(c_run)
     except KeyboardInterrupt:
-        print("Shutting down discord client")
+        logger.info("Shutting down discord client")
         loop.run_until_complete(client.close())
 
 

@@ -12,6 +12,8 @@ nextcord (pip install nextcord)
 
 dotenv (pip install python-dotenv)
 
+loguru (pip install loguru)
+
 ---
 
 ## Features

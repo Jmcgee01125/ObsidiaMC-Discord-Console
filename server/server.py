@@ -133,7 +133,7 @@ class ServerRunner:
             self._server.stdin.flush()  # type: ignore
             self._server.communicate(b"stop\n", timeout=5)  # type: ignore
         except Exception as e:
-            return f"Stop command failed: {e} \n\t(Server may already be offline.)"
+            return f"Stop command failed: {e} \t(Server may already be offline.)"
         finally:
             self._is_ready = False
 
